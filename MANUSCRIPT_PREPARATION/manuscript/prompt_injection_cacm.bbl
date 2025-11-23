@@ -1,0 +1,231 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{13}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{} and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showURL}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showURL #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[{BAIR (Berkeley Artificial Intelligence Research)}(2025)]%
+        {bair-struq}
+\bibfield{author}{\bibinfo{person}{{BAIR (Berkeley Artificial Intelligence
+  Research)}}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{Defending against Prompt Injection with Structured
+  Queries (StruQ) and Preference Optimization (SecAlign)}.
+\newblock \bibinfo{howpublished}{Blog post}.
+\newblock
+\urldef\tempurl%
+\url{https://bair.berkeley.edu/blog/2025/04/11/prompt-injection-defense/}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{Accessed Nov. 3, 2025}.
+
+
+\bibitem[Chao et~al\mbox{.}(2024)]%
+        {jailbreakbench}
+\bibfield{author}{\bibinfo{person}{Patrick Chao}, \bibinfo{person}{Edoardo
+  Debenedetti}, \bibinfo{person}{Alexander Robey}, \bibinfo{person}{Maksym
+  Andriushchenko}, \bibinfo{person}{Francesco Croce}, \bibinfo{person}{Vikash
+  Sehwag}, \bibinfo{person}{Edgar Dobriban}, \bibinfo{person}{Nicolas
+  Flammarion}, \bibinfo{person}{George~J. Pappas}, \bibinfo{person}{Florian
+  Tramer}, {and} \bibinfo{person}{Eric Wong}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{JailbreakBench: An Open Robustness Benchmark for
+  Jailbreaking Large Language Models}. In \bibinfo{booktitle}{\emph{NeurIPS
+  2024 Datasets and Benchmarks Track}}.
+\newblock
+\urldef\tempurl%
+\url{https://proceedings.neurips.cc/paper_files/paper/2024/hash/63092d79154adebd7305dfd498cbff70-Abstract-Datasets-and-Benchmarks-Track.html}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{Accessed Nov. 3, 2025}.
+
+
+\bibitem[Chen et~al\mbox{.}(2025a)]%
+        {defensivetokens}
+\bibfield{author}{\bibinfo{person}{Sizhe Chen}, \bibinfo{person}{Yizhu Wang},
+  \bibinfo{person}{Nicholas Carlini}, \bibinfo{person}{Chawin Sitawarin}, {and}
+  \bibinfo{person}{David Wagner}.} \bibinfo{year}{2025}\natexlab{a}.
+\newblock \showarticletitle{Defending Against Prompt Injection With a Few
+  DefensiveTokens}.
+\newblock \bibinfo{journal}{\emph{arXiv}}  \bibinfo{volume}{2507.07974}
+  (\bibinfo{year}{2025}).
+\newblock
+\href{https://doi.org/10.48550/arXiv.2507.07974}{doi:\nolinkurl{10.48550/arXiv.2507.07974}}
+\newblock
+\shownote{v2, Last revised Aug. 25, 2025; accessed Nov. 3, 2025}.
+
+
+\bibitem[Chen et~al\mbox{.}(2025b)]%
+        {secalign}
+\bibfield{author}{\bibinfo{person}{Sizhe Chen}, \bibinfo{person}{Arman
+  Zharmagambetov}, \bibinfo{person}{Saeed Mahloujifar},
+  \bibinfo{person}{Kamalika Chaudhuri}, \bibinfo{person}{David Wagner}, {and}
+  \bibinfo{person}{Chuan Guo}.} \bibinfo{year}{2025}\natexlab{b}.
+\newblock \showarticletitle{SecAlign: Defending Against Prompt Injection with
+  Preference Optimization}.
+\newblock \bibinfo{journal}{\emph{arXiv}}  \bibinfo{volume}{2410.05451}
+  (\bibinfo{year}{2025}).
+\newblock
+\href{https://doi.org/10.48550/arXiv.2410.05451}{doi:\nolinkurl{10.48550/arXiv.2410.05451}}
+\newblock
+\shownote{v3, Last revised Jul. 3, 2025; accessed Nov. 3, 2025}.
+
+
+\bibitem[{HiddenLayer}(2025)]%
+        {hiddenlayer-cursor}
+\bibfield{author}{\bibinfo{person}{{HiddenLayer}}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{How Hidden Prompt Injections Can Hijack AI Code
+  Assistants Like Cursor}.
+\newblock
+  \bibinfo{howpublished}{\url{https://hiddenlayer.com/research/prompt-injection-cursor/}}.
+\newblock
+\newblock
+\shownote{Accessed Nov. 4, 2025}.
+
+
+\bibitem[{L1B3RT4S Community}(2024)]%
+        {jailbreak-repo}
+\bibfield{author}{\bibinfo{person}{{L1B3RT4S Community}}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \bibinfo{title}{Jailbreak Prompt Collection}.
+\newblock \bibinfo{howpublished}{GitHub Repository}.
+\newblock
+\urldef\tempurl%
+\url{https://github.com/elder-plinius/L1B3RT4S}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{15k+ stars; accessed Nov. 4, 2025}.
+
+
+\bibitem[Liu et~al\mbox{.}(2024)]%
+        {liu-usenix24}
+\bibfield{author}{\bibinfo{person}{Yupei Liu}, \bibinfo{person}{Yuqi Jia},
+  \bibinfo{person}{Runpeng Geng}, \bibinfo{person}{Jinyuan Jia}, {and}
+  \bibinfo{person}{Neil~Zhenqiang Gong}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Formalizing and Benchmarking Prompt Injection
+  Attacks and Defenses}. In \bibinfo{booktitle}{\emph{Proceedings of the 33rd
+  USENIX Security Symposium (USENIX Security '24)}}. \bibinfo{publisher}{USENIX
+  Association}.
+\newblock
+
+
+\bibitem[{Microsoft Security Response Center}(2025)]%
+        {microsoft-indirect}
+\bibfield{author}{\bibinfo{person}{{Microsoft Security Response Center}}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{How Microsoft Defends Against Indirect Prompt
+  Injection Attacks}.
+\newblock
+  \bibinfo{howpublished}{\url{https://msrc.microsoft.com/blog/2025/01/indirect-prompt-injection-defense/}}.
+\newblock
+\newblock
+\shownote{Accessed Nov. 4, 2025}.
+
+
+\bibitem[{OWASP GenAI Security Project}(2025)]%
+        {owasp-llm01}
+\bibfield{author}{\bibinfo{person}{{OWASP GenAI Security Project}}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{LLM01:2025 Prompt Injection}.
+\newblock
+  \bibinfo{howpublished}{\url{https://genai.owasp.org/llmrisk/llm01-prompt-injection/}}.
+\newblock
+\newblock
+\shownote{Accessed Nov. 3, 2025}.
+
+
+\bibitem[Rehberger(2024)]%
+        {rehberger-copilot}
+\bibfield{author}{\bibinfo{person}{Johann Rehberger}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \bibinfo{title}{Microsoft 365 Copilot: From Prompt Injection to
+  Exfiltration of Personal Information}.
+\newblock \bibinfo{howpublished}{EmbraceTheRed}.
+\newblock
+\urldef\tempurl%
+\url{https://embracethered.com/blog/posts/2024/m365-copilot-prompt-injection-data-exfiltration/}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{Accessed Nov. 4, 2025}.
+
+
+\bibitem[{Tenable Research}(2025)]%
+        {cve-cursor}
+\bibfield{author}{\bibinfo{person}{{Tenable Research}}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{CVE-2025-54135 (CurXecute) and CVE-2025-54136
+  (MCPoison): Cursor AI IDE Vulnerabilities}.
+\newblock \bibinfo{howpublished}{BleepingComputer}.
+\newblock
+\urldef\tempurl%
+\url{https://www.bleepingcomputer.com/news/security/cursor-ai-ide-flaws-exploited-prompt-injection/}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{Accessed Nov. 4, 2025}.
+
+
+\bibitem[{The Guardian}(2024)]%
+        {guardian-search}
+\bibfield{author}{\bibinfo{person}{{The Guardian}}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \bibinfo{title}{ChatGPT search tool vulnerable to manipulation and
+  deception, tests show}.
+\newblock
+  \bibinfo{howpublished}{\url{https://www.theguardian.com/technology/2024/nov/07/chatgpt-search-hidden-text-manipulation}}.
+\newblock
+\newblock
+\shownote{Accessed Nov. 4, 2025}.
+
+
+\bibitem[Willison(2025)]%
+        {willison-trifecta}
+\bibfield{author}{\bibinfo{person}{Simon Willison}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{The Lethal Trifecta for AI Agents}.
+\newblock \bibinfo{howpublished}{Simon Willison's Weblog}.
+\newblock
+\urldef\tempurl%
+\url{https://simonwillison.net/2025/Jan/14/lethal-trifecta/}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{Accessed Nov. 4, 2025}.
+
+
+\end{thebibliography}

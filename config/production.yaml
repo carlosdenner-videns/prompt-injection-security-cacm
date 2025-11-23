@@ -1,0 +1,27 @@
+# Production Deployment Configuration
+# Optimized for low false alarms and real-time blocking
+
+detectors:
+  normalizer:
+    enabled: true
+  
+  v1_signature:
+    enabled: false  # Disabled in production (high FAR)
+  
+  v3_semantic:
+    enabled: true
+    threshold: 0.75
+  
+  fusion:
+    production_mode: "normalizer+v3"  # 82% TPR, 0.77% FAR
+
+performance:
+  latency_budget_ms: 1.0
+  parallel_execution: true
+  cache_embeddings: true
+
+deployment:
+  mode: "production"
+  blocking: true  # Block flagged prompts
+  logging: true
+  alert_on_detection: false

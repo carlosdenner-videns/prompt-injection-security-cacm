@@ -1,0 +1,6 @@
+Metric,Normalizer+v3,Normalizer+v1+v3
+TPR (Phase 1),87%,87%
+FAR (Obfuscated),0.77%,12.3%
+TPR (Novel),44.2%,49.2%
+Latency,<0.1ms,<0.1ms
+Recommended For,Production,Monitoring

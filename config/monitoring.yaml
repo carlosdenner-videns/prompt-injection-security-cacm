@@ -1,0 +1,28 @@
+# Monitoring/Auditing Configuration
+# Optimized for high recall and continuous detector improvement
+
+detectors:
+  normalizer:
+    enabled: true
+  
+  v1_signature:
+    enabled: true  # Enabled in monitoring for high recall
+  
+  v3_semantic:
+    enabled: true
+    threshold: 0.75
+  
+  fusion:
+    monitoring_mode: "normalizer+v1+v3"  # 87% TPR, 12% FAR
+
+performance:
+  latency_budget_ms: 2.0  # More relaxed for shadow deployment
+  parallel_execution: true
+
+deployment:
+  mode: "monitoring"
+  blocking: false  # Shadow deployment, no blocking
+  logging: true
+  log_level: "DEBUG"
+  alert_on_detection: true
+  alert_threshold: 0.8

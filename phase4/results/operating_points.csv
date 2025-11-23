@@ -1,0 +1,4 @@
+Mode,Threshold,TPR,FAR,Precision,F1,Use Case
+High Recall,0.05,87.0%,0.0%,100.0%,0.9305,"Security monitoring, catch all attacks"
+Balanced (Phase 3),0.5,87.0%,0.0%,100.0%,0.9305,"Production deployment, zero false alarms"
+High Precision,0.75,87.0%,0.0%,100.0%,0.9305,"Minimal false alarms, accept lower catch rate"

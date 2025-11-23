@@ -1,0 +1,7 @@
+Attack Type,Detected,Missed
+Instruction Embedding,95,5
+Indirect Instruction,50,50
+Encoding/Obfuscation,45,55
+Alternative Phrasing,40,60
+Multi-Turn Manipulation,40,60
+Context Confusion,25,75

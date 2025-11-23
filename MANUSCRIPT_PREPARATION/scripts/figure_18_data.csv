@@ -1,0 +1,11 @@
+Feature,Importance
+v1.is_attack,0.45
+v3.is_attack,0.35
+v2.is_attack,0.10
+homoglyphs_found,0.05
+zero_width_found,0.02
+unicode_changes,0.01
+mixed_script_detected,0.01
+text_length,0.005
+text_entropy,0.005
+symbol_ratio,0.005

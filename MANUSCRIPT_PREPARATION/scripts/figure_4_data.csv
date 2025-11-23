@@ -1,0 +1,7 @@
+Detector,Metric,Value
+v1,TPR,80
+v1,FAR,0
+v2,TPR,44
+v2,FAR,0
+v3,TPR,57
+v3,FAR,0

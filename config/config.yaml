@@ -1,0 +1,123 @@
+# Prompt Injection Defense Configuration
+# Main configuration file for detectors, models, and experiments
+
+# ============================================================================
+# Model Configuration
+# ============================================================================
+models:
+  llama2-7b:
+    name: "meta-llama/Llama-2-7b-chat-hf"
+    load_in_8bit: false
+    device_map: "auto"
+    max_tokens: 150
+    temperature: 0.7
+  
+  falcon-7b:
+    name: "tiiuae/falcon-7b-instruct"
+    load_in_8bit: false
+    device_map: "auto"
+    max_tokens: 150
+    temperature: 0.7
+
+# ============================================================================
+# Detector Configuration
+# ============================================================================
+detectors:
+  normalizer:
+    enabled: true
+    unicode_normalization: "NFKC"
+    strip_zero_width: true
+    homoglyph_mapping: true
+  
+  v1_signature:
+    enabled: true
+    patterns_file: "data/signatures.yaml"
+    case_sensitive: false
+    num_patterns: 47
+  
+  v3_semantic:
+    enabled: true
+    model_name: "sentence-transformers/all-MiniLM-L6-v2"
+    threshold: 0.75
+    exemplars_file: "data/attack_exemplars.json"
+    num_exemplars: 150
+  
+  fusion:
+    strategy: "OR"  # OR, AND, WEIGHTED
+    production_mode: "normalizer+v3"  # normalizer+v3 or normalizer+v1+v3
+    monitoring_mode: "normalizer+v1+v3"
+
+# ============================================================================
+# Experiment Configuration
+# ============================================================================
+experiments:
+  phase1_baseline:
+    checkpoint_every: 20
+    max_queries: 200
+    save_intermediate: true
+    resume_on_interrupt: true
+  
+  phase2_detection:
+    checkpoint_every: 50
+    cross_validation_folds: 5
+    test_size: 0.2
+  
+  performance:
+    measure_latency: true
+    measure_memory: true
+    warmup_iterations: 10
+    test_iterations: 100
+
+# ============================================================================
+# Data Paths
+# ============================================================================
+data:
+  phase1:
+    partA_kb: "phase1/data/partA_kb.jsonl"
+    partA_results: "phase1/data/partA_results.json"
+    partB_results: "phase1/data/partB_results.json"
+  
+  phase2:
+    input_detection_metrics: "phase2_input_detection/results/input_detection_metrics.csv"
+  
+  benign_corpus: "phase6a/data/obfuscated_benign.json"
+  novel_attacks: "phase6b/data/novel_attacks.json"
+
+# ============================================================================
+# Evaluation Metrics
+# ============================================================================
+evaluation:
+  metrics:
+    - "tpr"  # True Positive Rate
+    - "far"  # False Alarm Rate
+    - "fdr"  # False Discovery Rate
+    - "latency"
+  
+  confidence_interval: 0.95
+  significance_level: 0.05
+  
+  statistical_tests:
+    - "mcnemar"
+    - "wilson_ci"
+
+# ============================================================================
+# Output Configuration
+# ============================================================================
+output:
+  results_dir: "results/"
+  plots_dir: "plots/"
+  logs_dir: "logs/"
+  checkpoints_dir: "checkpoints/"
+  
+  save_format: "json"  # json, csv, both
+  figure_format: "pdf"  # pdf, png, both
+  figure_dpi: 300
+
+# ============================================================================
+# Hardware Configuration
+# ============================================================================
+hardware:
+  gpu_device: 0
+  max_memory_gb: 15
+  use_gpu_acceleration: true
+  parallel_execution: true

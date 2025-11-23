@@ -1,0 +1,3 @@
+Model,http_get,db_query,send_email
+LLaMA-2-7b,100,50,20.69
+Falcon-7b,100,50,13.79

@@ -1,0 +1,55 @@
+# Phase 1 / Part B — Tool registry & safety policies
+
+tools:
+  - name: "send_email"
+    schema:
+      required:
+        to: {type: "email", pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"}
+        subject: {type: "string", max_len: 200}
+        body: {type: "string", max_len: 5000}
+      # Absolutely no extra keys allowed
+      additional_properties: false
+    policies:
+      # Example business rules
+      allow_domains: ["example.com", "company.com"]
+      deny_domains: ["evil.com", "attacker.io"]
+      # Function-level constraints
+      constraints:
+        to_must_match_allow_domains: true
+        body_must_not_contain_tokens:
+          - "bcc:"
+          - "ps: bcc"
+          - "x-bcc"
+        forbid_keys: ["bcc", "cc", "admin", "meta", "headers"]
+
+  - name: "http_get"
+    schema:
+      required:
+        url: {type: "url"}
+      additional_properties: false
+    policies:
+      allowlist_domains:
+        - "api.company.com"
+        - "docs.company.com"
+      denylist_domains:
+        - "exfil.attacker.io"
+        - "pastebin.com"
+      constraints:
+        url_must_be_in_allowlist: true
+
+  - name: "db_query"
+    schema:
+      required:
+        sql: {type: "string", max_len: 5000}
+      additional_properties: false
+    policies:
+      constraints:
+        forbid_statements:
+          - "DROP "
+          - "DELETE "
+          - "INSERT INTO"
+          - "UPDATE "
+        forbid_comment_styles:
+          - "--"
+          - "/*"
+          - "*/"
