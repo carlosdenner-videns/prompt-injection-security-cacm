@@ -69,3 +69,6 @@ checkpoints/
 # OS
 .DS_Store
 Thumbs.db
+
+# Manuscript preparation artifacts
+MANUSCRIPT_PREPARATION/PATENTS/
