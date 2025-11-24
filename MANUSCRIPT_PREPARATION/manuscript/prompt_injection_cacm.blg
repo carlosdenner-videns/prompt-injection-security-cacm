@@ -14,52 +14,44 @@ Reallocating 'glb_str_end' (item size: 4) to 20 items.
 Reallocating 'glb_str_ptr' (item size: 4) to 20 items.
 Reallocating 'global_strs' (item size: 1) to 4000000 items.
 Reallocating 'singl_function' (item size: 4) to 100 items.
-Warning--empty publisher in jailbreakbench
-Warning--empty address in jailbreakbench
-Warning--page numbers missing in both pages and numpages fields in jailbreakbench
-Warning--page numbers missing in both pages and numpages fields in defensivetokens
-Warning--page numbers missing in both pages and numpages fields in secalign
-Warning--empty address in liu-usenix24
-Warning--page numbers missing in both pages and numpages fields in liu-usenix24
-You've used 13 entries,
+You've used 17 entries,
             6273 wiz_defined-function locations,
-            1587 strings with 21231 characters,
-and the built_in function-call counts, 11486 in all, are:
-= -- 1330
-> -- 396
+            1621 strings with 22551 characters,
+and the built_in function-call counts, 16551 in all, are:
+= -- 1917
+> -- 619
 < -- 0
-+ -- 124
-- -- 144
-* -- 783
-:= -- 1208
-add.period$ -- 76
-call.type$ -- 13
-change.case$ -- 88
-chr.to.int$ -- 12
-cite$ -- 20
-duplicate$ -- 1011
-empty$ -- 728
-format.name$ -- 159
-if$ -- 2596
-int.to.chr$ -- 3
++ -- 202
+- -- 225
+* -- 1179
+:= -- 1763
+add.period$ -- 97
+call.type$ -- 17
+change.case$ -- 125
+chr.to.int$ -- 17
+cite$ -- 17
+duplicate$ -- 1418
+empty$ -- 1011
+format.name$ -- 253
+if$ -- 3728
+int.to.chr$ -- 2
 int.to.str$ -- 1
-missing$ -- 18
-newline$ -- 191
-num.names$ -- 90
-pop$ -- 378
+missing$ -- 23
+newline$ -- 235
+num.names$ -- 119
+pop$ -- 498
 preamble$ -- 1
-purify$ -- 190
+purify$ -- 261
 quote$ -- 0
-skip$ -- 382
+skip$ -- 561
 stack$ -- 0
-substring$ -- 727
-swap$ -- 55
+substring$ -- 1148
+swap$ -- 107
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 359
-warning$ -- 7
-while$ -- 75
+type$ -- 482
+warning$ -- 0
+while$ -- 110
 width$ -- 0
-write$ -- 321
-(There were 7 warnings)
+write$ -- 415

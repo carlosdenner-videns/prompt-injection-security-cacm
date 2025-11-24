@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{13}
+\begin{thebibliography}{17}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -36,6 +36,23 @@
 \providecommand\natexlab[1]{#1}
 \providecommand\showeprint[2][]{arXiv:#2}
 
+\bibitem[Almazrouei et~al\mbox{.}(2023)]%
+        {falcon}
+\bibfield{author}{\bibinfo{person}{Ebtesam Almazrouei}, \bibinfo{person}{Hamza
+  Alobeidli}, \bibinfo{person}{Abdulaziz Alshamsi}, \bibinfo{person}{Alessandro
+  Cappelli}, \bibinfo{person}{Ruxandra Cojocaru}, \bibinfo{person}{Merouane
+  Debbah}, \bibinfo{person}{Etienne Goffinet}, \bibinfo{person}{Daniel Heslow},
+  \bibinfo{person}{Julien Launay}, \bibinfo{person}{Quentin Malartic},
+  {et~al\mbox{.}}} \bibinfo{year}{2023}\natexlab{}.
+\newblock \bibinfo{title}{The Falcon Series of Open Language Models}.
+\newblock \bibinfo{howpublished}{arXiv preprint arXiv:2311.16867}.
+\newblock
+\urldef\tempurl%
+\url{https://arxiv.org/abs/2311.16867}
+\showURL{%
+\tempurl}
+
+
 \bibitem[{BAIR (Berkeley Artificial Intelligence Research)}(2025)]%
         {bair-struq}
 \bibfield{author}{\bibinfo{person}{{BAIR (Berkeley Artificial Intelligence
@@ -61,8 +78,10 @@
   Flammarion}, \bibinfo{person}{George~J. Pappas}, \bibinfo{person}{Florian
   Tramer}, {and} \bibinfo{person}{Eric Wong}.} \bibinfo{year}{2024}\natexlab{}.
 \newblock \showarticletitle{JailbreakBench: An Open Robustness Benchmark for
-  Jailbreaking Large Language Models}. In \bibinfo{booktitle}{\emph{NeurIPS
-  2024 Datasets and Benchmarks Track}}.
+  Jailbreaking Large Language Models}. In \bibinfo{booktitle}{\emph{Proceedings
+  of the Thirty-Eighth Conference on Neural Information Processing Systems
+  (NeurIPS 2024) Datasets and Benchmarks Track}}. \bibinfo{publisher}{NeurIPS},
+  \bibinfo{address}{Vancouver, Canada}, \bibinfo{pages}{1--20}.
 \newblock
 \urldef\tempurl%
 \url{https://proceedings.neurips.cc/paper_files/paper/2024/hash/63092d79154adebd7305dfd498cbff70-Abstract-Datasets-and-Benchmarks-Track.html}
@@ -72,31 +91,16 @@
 \shownote{Accessed Nov. 3, 2025}.
 
 
-\bibitem[Chen et~al\mbox{.}(2025a)]%
-        {defensivetokens}
-\bibfield{author}{\bibinfo{person}{Sizhe Chen}, \bibinfo{person}{Yizhu Wang},
-  \bibinfo{person}{Nicholas Carlini}, \bibinfo{person}{Chawin Sitawarin}, {and}
-  \bibinfo{person}{David Wagner}.} \bibinfo{year}{2025}\natexlab{a}.
-\newblock \showarticletitle{Defending Against Prompt Injection With a Few
-  DefensiveTokens}.
-\newblock \bibinfo{journal}{\emph{arXiv}}  \bibinfo{volume}{2507.07974}
-  (\bibinfo{year}{2025}).
-\newblock
-\href{https://doi.org/10.48550/arXiv.2507.07974}{doi:\nolinkurl{10.48550/arXiv.2507.07974}}
-\newblock
-\shownote{v2, Last revised Aug. 25, 2025; accessed Nov. 3, 2025}.
-
-
-\bibitem[Chen et~al\mbox{.}(2025b)]%
+\bibitem[Chen et~al\mbox{.}(2025)]%
         {secalign}
 \bibfield{author}{\bibinfo{person}{Sizhe Chen}, \bibinfo{person}{Arman
   Zharmagambetov}, \bibinfo{person}{Saeed Mahloujifar},
   \bibinfo{person}{Kamalika Chaudhuri}, \bibinfo{person}{David Wagner}, {and}
-  \bibinfo{person}{Chuan Guo}.} \bibinfo{year}{2025}\natexlab{b}.
+  \bibinfo{person}{Chuan Guo}.} \bibinfo{year}{2025}\natexlab{}.
 \newblock \showarticletitle{SecAlign: Defending Against Prompt Injection with
   Preference Optimization}.
-\newblock \bibinfo{journal}{\emph{arXiv}}  \bibinfo{volume}{2410.05451}
-  (\bibinfo{year}{2025}).
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2410.05451}}
+  \bibinfo{volume}{2410.05451} (\bibinfo{year}{2025}), \bibinfo{pages}{1--15}.
 \newblock
 \href{https://doi.org/10.48550/arXiv.2410.05451}{doi:\nolinkurl{10.48550/arXiv.2410.05451}}
 \newblock
@@ -114,6 +118,19 @@
 \newblock
 \newblock
 \shownote{Accessed Nov. 4, 2025}.
+
+
+\bibitem[Johnson et~al\mbox{.}(2021)]%
+        {faiss}
+\bibfield{author}{\bibinfo{person}{Jeff Johnson}, \bibinfo{person}{Matthijs
+  Douze}, {and} \bibinfo{person}{Herv\'{e} J\'{e}gou}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Billion-Scale Similarity Search with {GPU}s}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Big Data}}
+  \bibinfo{volume}{7}, \bibinfo{number}{3} (\bibinfo{year}{2021}),
+  \bibinfo{pages}{535--547}.
+\newblock
+\href{https://doi.org/10.1109/TBDATA.2019.2921572}{doi:\nolinkurl{10.1109/TBDATA.2019.2921572}}
 
 
 \bibitem[{L1B3RT4S Community}(2024)]%
@@ -139,7 +156,8 @@
 \newblock \showarticletitle{Formalizing and Benchmarking Prompt Injection
   Attacks and Defenses}. In \bibinfo{booktitle}{\emph{Proceedings of the 33rd
   USENIX Security Symposium (USENIX Security '24)}}. \bibinfo{publisher}{USENIX
-  Association}.
+  Association}, \bibinfo{address}{Philadelphia, PA, USA},
+  \bibinfo{pages}{1--18}.
 \newblock
 
 
@@ -184,6 +202,21 @@
 \shownote{Accessed Nov. 4, 2025}.
 
 
+\bibitem[Reimers and Gurevych(2019)]%
+        {sentence-transformers}
+\bibfield{author}{\bibinfo{person}{Nils Reimers} {and} \bibinfo{person}{Iryna
+  Gurevych}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Sentence-BERT: Sentence Embeddings using Siamese
+  BERT-Networks}. In \bibinfo{booktitle}{\emph{Proceedings of the 2019
+  Conference on Empirical Methods in Natural Language Processing and the 9th
+  International Joint Conference on Natural Language Processing
+  (EMNLP-IJCNLP)}}. \bibinfo{publisher}{Association for Computational
+  Linguistics}, \bibinfo{address}{Hong Kong, China},
+  \bibinfo{pages}{3982--3992}.
+\newblock
+\href{https://doi.org/10.18653/v1/D19-1410}{doi:\nolinkurl{10.18653/v1/D19-1410}}
+
+
 \bibitem[{Tenable Research}(2025)]%
         {cve-cursor}
 \bibfield{author}{\bibinfo{person}{{Tenable Research}}.}
@@ -209,6 +242,39 @@
 \newblock
   \bibinfo{howpublished}{\url{https://www.theguardian.com/technology/2024/nov/07/chatgpt-search-hidden-text-manipulation}}.
 \newblock
+\newblock
+\shownote{Accessed Nov. 4, 2025}.
+
+
+\bibitem[Touvron et~al\mbox{.}(2023)]%
+        {llama2}
+\bibfield{author}{\bibinfo{person}{Hugo Touvron}, \bibinfo{person}{Louis
+  Martin}, \bibinfo{person}{Kevin Stone}, \bibinfo{person}{Peter Albert},
+  \bibinfo{person}{Amjad Almahairi}, \bibinfo{person}{Yasmine Babaei},
+  \bibinfo{person}{Nikolay Bashlykov}, \bibinfo{person}{Soumya Batra},
+  \bibinfo{person}{Prajjwal Bhargava}, \bibinfo{person}{Shruti Bhosale},
+  {et~al\mbox{.}}} \bibinfo{year}{2023}\natexlab{}.
+\newblock \bibinfo{title}{Llama 2: Open Foundation and Fine-Tuned Chat Models}.
+\newblock \bibinfo{howpublished}{arXiv preprint arXiv:2307.09288}.
+\newblock
+\urldef\tempurl%
+\url{https://arxiv.org/abs/2307.09288}
+\showURL{%
+\tempurl}
+
+
+\bibitem[{Unicode Consortium}(2024)]%
+        {unicode-confusables}
+\bibfield{author}{\bibinfo{person}{{Unicode Consortium}}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \bibinfo{title}{Unicode Security Considerations: Confusable
+  Detection}.
+\newblock \bibinfo{howpublished}{Unicode Technical Report \#36}.
+\newblock
+\urldef\tempurl%
+\url{https://www.unicode.org/reports/tr36/}
+\showURL{%
+\tempurl}
 \newblock
 \shownote{Accessed Nov. 4, 2025}.
 

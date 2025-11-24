@@ -1,0 +1,4 @@
+Dataset,Logistic_TPR,Logistic_FAR,OR_TPR,OR_FAR,TPR_Diff,FAR_Diff
+Phase 1 (train),1.0,0.0,0.87,0.0,0.13,0.0
+Novel attacks (P6b),0.0,0.0,0.0,0.0,0.0,0.0
+Adversarial (P6c),0.0,0.0,0.0,0.0,0.0,0.0

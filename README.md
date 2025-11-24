@@ -1,18 +1,19 @@
-# Prompt Injection Defense: Multi-Phase Evaluation Framework
+# Prompt Injection Demystified: Building an LLM Firewall for Production LLM Systems
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CACM Ready](https://img.shields.io/badge/CACM-Submission%20Ready-green.svg)](MANUSCRIPT_PREPARATION/manuscript/prompt_injection_cacm.pdf)
+[![CACM Practice](https://img.shields.io/badge/CACM-Practice%20Article-green.svg)](MANUSCRIPT_PREPARATION/manuscript/prompt_injection_cacm.pdf)
 
-**Building an LLM Firewall: A Multi-Phase Defense Against Prompt Injection**
+**A Practitioner's Playbook for Building Input-Side Prompt Injection Defenses**
 
-Research implementation and publication-ready manuscript for systematic evaluation of input-side prompt injection defenses.
+Research implementation and CACM Practice-ready manuscript for systematic evaluation of deployable prompt injection firewalls.
 
 ---
 
 ## 📄 Publication
 
-**Status**: ✅ Ready for CACM submission  
+**Status**: ✅ Ready for CACM Practice submission  
+**Style**: Practitioner-oriented playbook (14 pages, 2 figures, 6 tables)  
 **Manuscript**: [`MANUSCRIPT_PREPARATION/manuscript/prompt_injection_cacm.pdf`](MANUSCRIPT_PREPARATION/manuscript/prompt_injection_cacm.pdf)  
 **Author**: Carlos Denner dos Santos, PhD (Videns, propelled by Cofomo)
 
@@ -297,8 +298,9 @@ Full analysis: [`MANUSCRIPT_PREPARATION/PATENTS/`](MANUSCRIPT_PREPARATION/PATENT
 ## 📚 Documentation
 
 ### Manuscript
-- **PDF**: [`MANUSCRIPT_PREPARATION/manuscript/prompt_injection_cacm.pdf`](MANUSCRIPT_PREPARATION/manuscript/prompt_injection_cacm.pdf)
+- **PDF**: [`MANUSCRIPT_PREPARATION/manuscript/prompt_injection_cacm.pdf`](MANUSCRIPT_PREPARATION/manuscript/prompt_injection_cacm.pdf) (14 pages, CACM Practice style)
 - **LaTeX Source**: [`MANUSCRIPT_PREPARATION/manuscript/`](MANUSCRIPT_PREPARATION/manuscript/)
+- **Figures**: 2 essential visuals (baseline chart + architecture diagram); archived figures in `archived_figures/`
 
 ### Reproducibility
 - **Full Guide**: [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md)
@@ -331,14 +333,15 @@ python phase1/scripts/analyze_results.py
 ### Generating Figures
 
 ```bash
-# All 10 figures for manuscript
-python MANUSCRIPT_PREPARATION/scripts/generate_all_figures.py
+# Generate baseline vulnerability chart (Figure 1)
+python MANUSCRIPT_PREPARATION/scripts/generate_figure_1.py
 
-# Individual figure (e.g., architecture)
-python MANUSCRIPT_PREPARATION/scripts/generate_figure_16_final_optimized.py
+# Architecture diagram (Figure 2) is created in LaTeX using TikZ
+# See manuscript source for clean vector diagram
 ```
 
-**Output**: High-resolution PDFs in `MANUSCRIPT_PREPARATION/manuscript/`
+**Output**: High-resolution PDFs in `MANUSCRIPT_PREPARATION/manuscript/`  
+**Note**: Additional analysis figures archived in `MANUSCRIPT_PREPARATION/manuscript/archived_figures/`
 
 ---
 
@@ -358,9 +361,9 @@ Please see [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ```bibtex
 @article{denner2025llmfirewall,
-  title={Building an LLM Firewall: A Multi-Phase Defense Against Prompt Injection},
+  title={Prompt Injection Demystified: Building an LLM Firewall for Production LLM Systems},
   author={Denner dos Santos, Carlos},
-  journal={Communications of the ACM},
+  journal={Communications of the ACM (Practice Section)},
   year={2025},
   note={Submitted}
 }

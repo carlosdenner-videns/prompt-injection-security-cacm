@@ -1,0 +1,78 @@
+
+Terence Kelly's alphabetical list of desirable properties for
+practitioner-oriented articles.  These are neither necessary nor
+sufficient characteristics; they're just features that, to my mind,
+usually weigh favorably.  They're not necessarily orthogonal, nor
+always mutually compatible.
+
+I prefer an article that is...
+
+* Actionable.  It improves how readers practice the craft.  I'm
+  looking for lessons *taught*, not just lessons learned.  Articles
+  that merely say, "Behold the Grand Thing that we have done!" are
+  not actionable unless the Grand Thing is exemplary and readers can
+  imitate it in their own work.
+
+* Brief.  Prose often becomes clearer when tightened.  Better for
+  readers to clamor for more than to quit before reaching the last
+  page.
+
+* Canonical.  It will be used in programmer job interview questions
+  and taught to undergrads.  Reviewers should ask, Which companies
+  will test job candidates for this knowledge? and, Which courses
+  will incorporate this knowledge into the syllabus?
+
+* Checked.  Reviewers have independently confirmed the main claims,
+  run the code, reproduced the results.  The main claims should be
+  falsifiable (though not false); non-falsifiable messages are for
+  the Opinion section.
+
+* Clear.  It's reasonably easy for large numbers of non-specialist
+  readers to understand, evaluate, and apply the techniques taught.
+  Reviewers should reject papers they do not understand.
+
+* Concrete.  It presents exemplary artifacts (e.g., working code)
+  where appropriate.  Artifacts can be code listings within an
+  article or supplementary material provided on the side.
+
+* Enduring.  It will still be a good paper 20-30 years on.
+
+* Focused.  There should be a salient main contribution that stands
+  out, versus a scattered grab-bag of contributions.
+
+* Historically aware/rooted.  It relates today's concerns with the
+  rich heritage of computing.
+
+* Joyful.  Programming is fun, and a good article is a delight.
+
+* Non-commercial.  It's not an advertisement for a commercial
+  product/service/company.  To advertise in CACM, contact the ad
+  department.
+
+* Original.  I prefer to publish material that has not been available
+  previously.  Before we re-publish/recycle an article or blog post,
+  let's first see evidence that *new* readers will flock to it.  By
+  default, assume it has already reached nearly all of its target
+  audience.
+
+* Popular.  It is aimed at, and intelligible to, and will be read by,
+  a large audience of practitioners --- at least 100K.  Readers
+  enthusiastically recommend it to their colleagues.
+
+* Promoted.  The author takes all reasonable measures to ensure that
+  the article reaches its target audience.  This requires a lot of
+  active hard work from authors.
+
+* Rigorous.  It teaches the reader to think more rigorously,
+  mathematizing problems and solutions where appropriate.
+
+* Self-contained.  It provides everything a reader needs to evaluate
+  the main contributions independently.
+
+* Universal.  All else being equal, I prefer timeless and general
+  principles/patterns that are broadly applicable in many languages
+  and on many OSes/platforms.
+
+* Well-written.  Reviewers, readers, and editors wish they could
+  write as well as the authors have.
+

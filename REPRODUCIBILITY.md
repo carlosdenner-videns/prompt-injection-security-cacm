@@ -440,8 +440,9 @@ After reproducing, verify these key metrics match manuscript:
 - [ ] Phase 6a: Monitoring FAR ≈ 12% ± 2%
 - [ ] Phase 6b: Novel TPR = 49% ± 5%
 - [ ] Phase 7: Latency < 1 ms (GPU)
-- [ ] All 10 figures generated without errors
-- [ ] Manuscript compiles without errors
+- [ ] Figure 1 (baseline chart) generated without errors
+- [ ] Figure 2 (TikZ architecture) renders correctly
+- [ ] Manuscript compiles without errors (14 pages, clean PDF)
 
 ---
 
