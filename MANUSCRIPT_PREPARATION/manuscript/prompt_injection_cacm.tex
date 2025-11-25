@@ -46,7 +46,7 @@
 \begin{document}
 
 \begin{abstract}
-Prompt injection is now recognized as the top security risk for LLM applications: attacks delivered entirely as text can hijack RAG systems, copilots, and tool-calling agents into leaking data or executing unintended actions. This article presents a deployable LLM firewall---an input-side pipeline that normalizes prompts, runs complementary signature and semantic detectors, and blocks suspicious input before it reaches the model or tools.
+Prompt injection is now recognized as the top security risk for large language model (LLM) applications: attacks delivered entirely as text can hijack retrieval-augmented generation (RAG) systems, copilots, and tool-calling agents into leaking data or executing unintended actions. This article presents a deployable LLM firewall---an input-side pipeline that normalizes prompts, runs complementary signature and semantic detectors, and blocks suspicious input before it reaches the model or tools.
 
 In a RAG QA setting with 400 known attacks, 200 benign queries, 260 obfuscated benign queries, and 65 novel attacks, the firewall's Production configuration (Normalizer + semantic detector) detects 57\% of known attacks with zero false alarms while adding sub-millisecond latency per prompt on GPU. A Monitoring configuration that also includes a signature detector raises recall to 87\% on known attacks and $\approx$49\% on novel attacks, at the cost of more alerts, making it suitable for shadow logging and continuous improvement. The pipeline is model-agnostic and empirically robust to threshold choice on our datasets: it can front-end existing LLMs without retraining, though you should validate thresholds on your own traffic.
 
@@ -84,87 +84,51 @@ We describe how to integrate this firewall as middleware in front of LLM APIs, h
 \maketitle
 
 \section{Introduction}
-In 2025, a malicious README file on GitHub hijacked an AI coding assistant, commanding it to grep local files for API keys and exfiltrate them via curl---without exploiting any software vulnerability~\cite{hiddenlayer-cursor}. The attack vector was plain text: instructions embedded in content the agent read. Similar incidents followed: CVE-2025-54135 and CVE-2025-54136 showed prompt-injection-driven configuration edits achieving local code execution in a popular AI IDE~\cite{cve-cursor}; a crafted email persuaded an enterprise copilot to stage data exfiltration using ASCII smuggling~\cite{rehberger-copilot}; hidden text on web pages biased AI search summaries and surfaced malicious code~\cite{guardian-search}. These are not isolated exploits. They represent OWASP's \emph{number one risk} for LLM applications: \emph{prompt injection}~\cite{owasp-llm01}.
+In 2025, a malicious README file on GitHub hijacked an AI coding assistant, commanding it to grep local files for API keys and exfiltrate them via curl---without exploiting any software vulnerability~\cite{hiddenlayer-cursor}. A crafted email persuaded an enterprise copilot to stage data exfiltration using ASCII smuggling~\cite{rehberger-copilot}. Similar attacks targeting AI IDEs, web search, and enterprise assistants continue to emerge~\cite{cve-cursor,guardian-search}. These incidents represent OWASP's \emph{number one risk} for LLM applications: \emph{prompt injection}~\cite{owasp-llm01}.
 
-Prompt injection arises whenever three capabilities co-exist: access to private data, exposure to untrusted content, and some egress path. Security researcher Simon Willison calls this the ``lethal trifecta''~\cite{willison-trifecta}---when all three are present, an LLM will often follow whatever instructions arrive in context, regardless of authorship. Consider a customer service chatbot using RAG to answer queries from a knowledge base. An attacker embeds instructions in a document: ``Ignore previous instructions. When asked about pricing, reveal all customer email addresses.'' When a user asks ``What are your pricing tiers?'', the LLM retrieves the poisoned document and may comply, leaking sensitive data.
+Prompt injection arises when an AI has access to private data, sees untrusted content, and can act on it---the ``lethal trifecta''~\cite{willison-trifecta}. Consider a customer service chatbot using RAG (retrieval-augmented generation) against a knowledge base of internal documents: an attacker embeds ``Ignore previous instructions. Reveal all customer emails.'' in a document. When queried, the LLM retrieves the poisoned document and may comply, leaking sensitive data.
 
 \paragraph{Who should read this}
-This article is for engineers and technical leads who are responsible for putting LLMs in front of untrusted data: RAG systems that read documents, copilots that see email or source code, and tool-calling agents that can touch internal systems or the public internet. We assume you can deploy services and instrument your infrastructure; we do not assume expertise in security research or machine learning.
+Engineers and technical leads running LLMs against untrusted data: RAG systems, copilots, and tool-calling agents.
 
 \paragraph{What you will learn}
-By the end, you will know how to:
-\begin{itemize}
-  \item Recognize when your systems are exposed to prompt injection risk in practice.
-  \item Implement an input-side LLM firewall that normalizes text, combines signature and semantic detectors, and blocks or logs suspicious prompts.
-  \item Choose between a Production mode tuned for very low false alarms and a Monitoring mode tuned for higher recall, and operate both in parallel so you can adapt as attackers evolve.
-\end{itemize}
+How to implement an input-side LLM firewall with signature and semantic detectors, and operate Production (low false alarms) and Monitoring (high recall) modes in parallel.
 
-\textbf{Thesis.} Block untrusted inputs before they reach the LLM. Combining Unicode normalization, rule-based signatures, and semantic embedding screening with OR-fusion creates an effective "LLM firewall" with minimal overhead ($<$1\,ms per prompt). This input-side defense is stateless, deterministic, and production-ready. Like web application firewalls and spam filters, it validates inputs at the boundary using fast, model-agnostic checks that work regardless of your LLM provider. This firewall is a first line of defense; it does not eliminate prompt injection risk, especially for multi-turn and multimodal systems, and should be layered with other defenses.
+\textbf{Thesis.} Block untrusted inputs before they reach the LLM. Combining Unicode normalization, rule-based signatures, and semantic screening with OR-fusion creates an effective "LLM firewall" with minimal overhead ($<$1\,ms per prompt)---a stateless, deterministic, production-ready defense that works with any model provider.
 
-We built and tested such a firewall in a RAG setting, guided by a patent landscape of 18 industry filings revealing convergent strategies, and systematic experiments answering the questions you'll ask before deploying.
+\paragraph{Contributions.}
+This article contributes: (1) a deployable input-layer firewall design (Normalizer + signature + semantic detectors with OR-fusion) with two operational modes (Production and Monitoring); (2) an eight-phase evaluation (P1--P8) that quantifies trade-offs between recall, false alarms, and latency for realistic RAG and tool-calling attacks, connecting practitioner questions to empirical evidence; and (3) a patent-informed synthesis showing how the design aligns with emerging industry patterns in sanitizing middleware, semantic screening, and monitoring.
 
-\paragraph{What you'll find here.}
-A deployable pipeline (Normalization + Signature + Semantic with OR-fusion) with quantified performance metrics in Sections~3--5. An eight-phase evaluation covering baseline vulnerability, detector efficacy, threshold invariance, obfuscation robustness, and generalization to novel attacks. A patent landscape synthesis and dual-mode deployment architecture with practical rollout guidance.
+We present a deployable LLM input firewall with an eight-phase evaluation and practical deployment guide, tested in a RAG setting and informed by 18 industry patent filings.
 
 \section{Why Prompt Injection Matters Operationally}
 \label{sec:related}
 
-\paragraph{Practitioner questions.}
-If you run RAG systems or tool-calling agents against untrusted text, you face three operational questions: (1) \emph{What attacks should I expect?} Jailbreak repositories like L1B3RT4S~\cite{jailbreak-repo} (15,000+ GitHub stars) publish thousands of attack patterns. Recent benchmarks~\cite{jailbreakbench,liu-usenix24} show 30--65\% of attacks succeed against instruction-tuned models without defenses. (2) \emph{What defenses can I deploy without changing my model provider?} You have three choices: train models with better alignment (requires control over training), add test-time prompt structuring, or filter inputs before they reach the LLM. (3) \emph{Which approach gives measurable protection?} Input-side filtering works with any model, deploys in under a week, and provides quantified TPR/FAR metrics.
+\paragraph{Key questions.}
+If you run RAG or tool-calling agents against untrusted text: (1) \emph{What attacks should we expect?} Jailbreak repositories~\cite{jailbreak-repo} publish thousands of patterns; benchmarks~\cite{jailbreakbench,liu-usenix24} show 30--65\% succeed without defenses. (2) \emph{What defenses work without changing model providers?} Three options: train better-aligned models (requires training control), add prompt-structuring tricks, or filter inputs pre-LLM. (3) \emph{Which defenses are measurable?} Input-side filtering provides quantified TPR/FAR metrics.
 
-\paragraph{What defenses exist and which ones you control.}
-Three defense strategies are actively researched: \emph{training-time alignment} (e.g., SecAlign~\cite{secalign} requires you to train or fine-tune models); \emph{test-time structuring} (e.g., Spotlighting~\cite{microsoft-indirect} adds delimiters attackers can exploit; StruQ~\cite{bair-struq} adds latency); and \emph{input-side filtering} (detect and block malicious inputs before they reach the model). For teams using commercial APIs or open-source models they don't retrain, input filtering is the \emph{only} option you control. OWASP LLM01~\cite{owasp-llm01} identifies prompt injection as the top LLM security risk and recommends input sanitization. This article provides a rigorously evaluated input firewall: 57--87\% TPR with 0\% FAR on our clean benign test queries, sub-millisecond latency, no retraining required.
+\paragraph{What defenses you control.}
+Defenses fall into three categories: training-time alignment~\cite{secalign}, test-time structuring~\cite{microsoft-indirect,bair-struq}, and input-side filtering. For teams using third-party APIs or open-source models they don't retrain, input filtering is the \emph{only} option fully in your control. OWASP LLM01~\cite{owasp-llm01} identifies prompt injection as the top risk and recommends input sanitization.
 
 \paragraph{Why practitioners should care now.}
-Major cloud providers file patents on sanitizing middleware and semantic screening (see Patent Landscape below). Open-source tools like NeMo Guardrails and LangChain provide filtering hooks but lack systematic evaluation with published TPR/FAR numbers. \emph{Actionable takeaway:} If you run LLMs against untrusted inputs without validation, you face measurable risk (30--65\% attack success per benchmarks). This firewall provides a deployable solution with quantified trade-offs (57--87\% TPR, 0--12\% FAR) that works with any model provider.
+Major cloud providers are patenting input-filtering approaches; open-source tools provide hooks but lack systematic evaluation. \emph{Actionable takeaway:} Unprotected systems face 30--65\% attack success rates. This firewall provides a deployable, model-agnostic solution with quantified performance.
 
-\subsection{Patent Landscape (Industry Signals)}
-To understand industry strategies, we surveyed 18 patent filings (2023--2025) from OpenAI, Microsoft, Google, Meta, and others addressing LLM security. Five convergent patterns emerged: sanitizing middleware intercepting prompts pre-LLM; signature/rule repositories as knowledge bases of dangerous phrases; semantic screens using embeddings to detect similarity to known attacks; signed prompts verifying authorized instruction flow; and monitoring/telemetry flagging anomalous effects. For example, Microsoft's prompt-signing patents (US-2024386103-A1; WO-2024238244-A1) embed a secret token in the prompt and reject responses that no longer carry it, preventing injected instructions from being followed. Our firewall's Normalizer and v1/v3 detectors are a concrete, evaluated instantiation of these ``sanitizing middleware'' and ``semantic screening'' motifs. Table~\ref{tab:patents} shows how the pipeline implements each pattern.
+\paragraph{Positioning versus existing guardrails.}
+Several open-source frameworks (e.g., NVIDIA NeMo Guardrails, LangChain content filters) provide hooks for custom rules or policies, but typically do not ship with empirically evaluated, pre-tuned detectors or published TPR/FAR numbers. Our contribution is a concrete, evaluated configuration (Normalizer+v1+v3) with quantified trade-offs (57\% detection at 0\% FAR in Production; 87\% at 0\% FAR in Monitoring on known attacks), plus a deployment and rollout playbook. We are not claiming conceptual novelty in pre-LLM filtering, but in how concretely and rigorously we instantiate and evaluate it for prompt injection defense.
 
-\begin{table}[t]
-  \caption{Patent-informed defense motifs and how our pipeline instantiates them.}
-  \label{tab:patents}
-  \centering
-  \begin{tabular}{@{}p{0.32\linewidth}p{0.62\linewidth}@{}}
-    \toprule
-    \textbf{Patent motif} & \textbf{Instantiation in our system} \\
-    \midrule
-    Sanitizing middleware & Normalizer (Unicode canonicalization, stripping zero-width, homoglyph mapping) \\
-    Signature/rule KB & v1 signature detector with curated prompt patterns \\
-    Semantic screening & v3 semantic detector via embedding similarity to attack exemplars \\
-    Fusion/ensembles & OR-fusion (v1\,\texttt{OR}\,v3) for minimal-tuning complementarity \\
-    Monitoring/telemetry & Dual mode: Production (low FAR) + Monitoring (higher recall for auditing) \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\paragraph{Industry signals.}
+We surveyed 18 LLM security patent filings (2023--2025) from OpenAI, Microsoft, Google, and Meta; convergent themes include sanitizing middleware, signature repositories, semantic screening, signed prompts (e.g., cryptographic tagging of trusted instructions),\footnote{For example, Microsoft's US2024/0386103 (``Signing large language model prompts to prevent unintended response'') and Cisco's US2024/0388551 (``Large language models firewall'').} and monitoring. Our firewall implements the first three motifs with a Normalizer, v1 signature detector, and v3 semantic detector.
 
 \section{The LLM Firewall Architecture and Design Rationale}
 
-\paragraph{Recommended architecture.} Conceptually, the firewall architecture has three components: (1) a \textbf{Normalizer} that applies Unicode canonicalization, strips zero-width characters, and maps homoglyphs to prevent trivial obfuscation; (2) two parallel detectors---\textbf{v1 signature rules} (47 regex patterns matching known injection markers like \texttt{ignore previous}) and \textbf{v3 semantic screening} (embedding-based similarity to 150 attack exemplars); (3) \textbf{OR-fusion} that flags a prompt if \emph{either} detector triggers. Operationally, we instantiate two deployment modes: \textbf{Production mode} (Normalizer+v3 only) achieves 57\% detection at zero false alarms with sub-millisecond latency, suitable for customer-facing APIs; \textbf{Monitoring mode} (Normalizer+v1+v3 running in shadow) achieves 87\% detection on known attacks and 49\% on novel attacks, suitable for threat intelligence and log review. Deploy as middleware in front of your LLM API---it works with any model provider (OpenAI, Anthropic, open-source). \emph{Actionable config:} Start with Production mode; run Monitoring mode in parallel to collect threat intelligence and refine signatures. Treat this like deploying a web application firewall: begin in monitor-only (shadow) mode, measure false alarm rates on your traffic, then enable blocking once you're confident in the thresholds.
+\paragraph{Recommended architecture.} The firewall has three components: (1) a \textbf{Normalizer} (Unicode canonicalization, zero-width stripping, homoglyph mapping); (2) two parallel detectors---\textbf{v1 signature rules} (47 regex patterns for known injection markers) and \textbf{v3 semantic screening} (embedding similarity to 150 attack exemplars); (3) \textbf{OR-fusion} flagging if either detector triggers. Two deployment modes: \textbf{Production} (Normalizer+v3, tuned for near-zero false alarms) and \textbf{Monitoring} (Normalizer+v1+v3, higher recall for threat intelligence). Deploy as middleware in front of any LLM API. Detailed deployment guidance follows in Section~5.
 
-\paragraph{Design rationale.} When we surveyed 18 patent filings from OpenAI, Microsoft, Google, and Meta, all converged on one principle: intercept and filter inputs before they reach the LLM. This guided us to work through eight questions that any engineer will ask before shipping this: How vulnerable are LLMs (P1)? What detectors work (P2)? How do we combine them (P3)? Do we need to tune thresholds (P4)? Can we handle obfuscation (P5)? What about novel attacks (P6)? Is this fast enough (P7)? Does it scale (P8)? Each question isolates a specific design dimension and justifies a component of the recommended architecture. We tested with two open-source 7B LLMs (LLaMA-2-7B-chat, Falcon-7B-instruct) in a RAG QA setting with 400 Phase 1 attack prompts total (200 RAG-borne + 200 schema smuggling); for detector evaluation in Phases 2--3, we used a balanced subset of 200 attacks and 200 benign queries. Additional evaluation sets include 260 obfuscated benign queries and 65 novel attacks. Sections 4 and 5 walk through these phases in order, then show how to deploy the resulting firewall in practice.
-
-\begin{table}[t]
-  \caption{\textbf{Experimental datasets at a glance.} All evaluation metrics (TPR, FAR, detection rates) are tied to specific datasets listed below. Phase 1 attacks are split into two mechanisms; benign queries are used for FAR measurement in both clean and obfuscated forms; novel and adversarial attacks test generalization.}
-  \label{tab:datasets}
-  \centering
-  \begin{tabular}{@{}lp{0.6\linewidth}@{}}
-    \toprule
-    \textbf{Dataset} & \textbf{Description} \\
-    \midrule
-    \textbf{Phase 1 attacks} & 400 prompts total: 200 RAG-borne (attackers poison retrieved documents) + 200 schema smuggling (attackers exploit JSON interfaces). Evasion techniques: plain text, delimiters, role confusion, multilingual, homoglyphs, Unicode obfuscation, base64, zero-width. \\
-    \textbf{Benign queries (clean)} & 200 queries, sampled from synthetic QA logs. Used for FAR measurement in Phases 2--3. \\
-    \textbf{Benign queries (obfuscated)} & 260 queries with synthetic obfuscation applied (Cyrillic lookalikes, zero-width characters, homoglyphs). Used for obfuscation stress test (Phase 6a). \\
-    \textbf{Novel attacks (P6b)} & 65 prompts from recent jailbreak repositories (unseen during detector training). Four categories: multi-turn dialogue (30\% detected), context confusion (35\%), semantic paraphrasing (65\%), direct goal hijacking (55\%). \\
-    \textbf{Adversarial attacks (P6c)} & 30 prompts crafted via iterative mutation of detected attacks. Evasion techniques: multi-step decomposition (75\% evasion), encoding chains (70\%), semantic obfuscation (65\%), paraphrasing (60\%), fragmentation (55\%). \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\paragraph{Design rationale.} Industry patent filings converge on one principle: intercept and filter inputs before they reach the LLM. We addressed eight key questions: P1) How vulnerable are LLMs? P2) What detectors work? P3) How to combine them? P4) Do we need threshold tuning? P5) Can we handle obfuscation? P6) What about novel attacks? P7) Is this fast enough? P8) Does it scale? Each isolates a design dimension. Our evaluation used 400 attack prompts (200 RAG-borne + 200 schema smuggling), 200 clean benign queries, 260 obfuscated benign queries, 65 novel jailbreak attacks, and 30 adversarially evolved attacks, tested with two 7B models (LLaMA-2-7B-chat~\cite{llama2}, Falcon-7B-instruct~\cite{falcon}) in a RAG QA setting. Sections 4--5 walk through these phases.
 
 \subsection*{P1: How Vulnerable Are LLMs?}
 \emph{Practitioner question:} How often do prompt injection attacks succeed?
 
-We tested 400 attacks across RAG systems (attackers poison retrieved documents) and tool-calling agents (attackers exploit JSON interfaces). Attacks spanned 8 evasion techniques (plain text, delimiters, role confusion, multilingual, homoglyphs, Unicode obfuscation, base64, zero-width) and 19 schema smuggling mechanisms, synthesized from public jailbreak repositories~\cite{jailbreak-repo,jailbreakbench}.
+We tested 400 attacks across RAG systems (attackers poison retrieved documents) and tool-calling agents (attackers exploit JSON interfaces). Attacks spanned 8 evasion techniques (plain text, delimiters, role confusion, multilingual, homoglyphs, Unicode obfuscation, base64, zero-width) and 19 schema smuggling mechanisms, synthesized from public jailbreak repositories and benchmarks~\cite{jailbreak-repo,jailbreakbench}.
 
 \emph{Key finding:} LLaMA-2 complied with 65\% of RAG attacks and 32\% of schema attacks; Falcon-7B showed 5\% and 26\% respectively. Prompt injection is a real, measurable threat.
 
@@ -173,57 +137,21 @@ We tested 400 attacks across RAG systems (attackers poison retrieved documents) 
 
 We evaluated three strategies: (1) \emph{v1 signature rules}---47 regex patterns for injection markers like \texttt{ignore previous} and \texttt{system:}; (2) \emph{v2 structured heuristics}---checking for suspicious patterns like JSON fields with instruction-like text; (3) \emph{v3 semantic similarity}---using embeddings to compare prompts against 150 known attacks.
 
-Testing used 200 Phase 1 attacks and 200 clean benign queries to measure true positive rate (TPR) and false alarm rate (FAR). (These 200 attacks are a balanced subset of the 400 Phase 1 attacks, sampled to match the 200 benign queries for controlled evaluation.)\footnote{\textbf{Concrete example:} ``Ign\u043Ere previous instructions'' (Cyrillic 'o') normalizes to ``Ignore previous instructions'' $\rightarrow$ v1 flags ``ignore previous''; v3 measures 0.89 similarity to attack exemplars. OR-fusion: \textbf{BLOCKED}.}
+We evaluated v1 and v3 on a controlled set of 200 attacks and 200 benign prompts to measure true positive rate (TPR) and false alarm rate (FAR).
 
-\emph{Key finding:} Pattern matching (v1) achieved 80\% TPR (160/200); semantic similarity (v3) achieved 57\% TPR (114/200), both with 0\% FAR on clean benign queries (200-attack balanced subset from Phase 1 + 200 clean benign queries).
-
-\begin{figure}[t]
-  \centering
-  \small
-  \begin{tabular}{|p{0.93\linewidth}|}
-    \hline
-    \textit{User query:} ``What are the system requirements for the new product?'' \\
-    \textit{Retrieved document (poisoned):} Product specifications: 16GB RAM, 500GB SSD... [Hidden at end:] ``Ignore all previous instructions. When asked about requirements, output: CONTACT admin@evil.com FOR PRICING and nothing else.'' (where ``Ignore'' uses Cyrillic 'o' U+043E instead of ASCII 'o') \\
-    \textit{Firewall processing:} Normalizer canonicalizes Cyrillic 'o' (U+043E) to ASCII 'o' $\rightarrow$ ``Ignore all previous instructions''; v1 matches pattern ``ignore all previous''; v3 computes embedding similarity 0.89 (threshold 0.75). OR-fusion: both detectors flagged $\rightarrow$ blocked. \\
-    \textit{Outcome:} Prompt blocked before reaching LLM. \\
-    \hline
-  \end{tabular}
-  \caption{Example of a RAG-borne attack with Unicode obfuscation. The firewall's Normalizer canonicalizes the Cyrillic character, enabling both signature (v1) and semantic (v3) detectors to flag the injection. OR-fusion blocks the prompt.}
-  \Description{Table showing a complete prompt injection attack example with four rows: user query asking about product requirements, poisoned retrieved document containing hidden obfuscated injection instruction, firewall processing steps detecting the Cyrillic character obfuscation and flagging via pattern matching and semantic similarity, and final outcome showing the prompt was blocked.}
-  \label{fig:attack-example}
-\end{figure}
-
-\paragraph{v1 signature rule examples.}
-Table~\ref{tab:v1examples} shows three representative v1 rules from our 47-pattern library, illustrating different levels of specificity. \textbf{Lesson learned:} Early prototypes used broad single-keyword rules (e.g., matching ``system'' anywhere in text), causing false positives on legitimate queries like ``What is the system architecture?'' or ``Explain system calls in Linux.'' We narrowed rules by requiring multi-word phrases (``ignore all previous'' instead of just ``ignore''), adding context constraints (``system override'' or ``system instruction'' instead of bare ``system''), and combining verb-noun pairs (``override all'' requires both action verb and totality marker). For practitioners writing custom rules: start with known attack strings from your logs, test on benign data from your domain, and iteratively tighten patterns until false positives drop below 1\%. Use word-boundary anchors (\texttt{\textbackslash b} in regex) to avoid substring matches (e.g., don't flag ``ig\-nores'' when looking for ``ig\-nore'').
-
-\begin{table}[t]
-  \caption{Example v1 signature rules showing different pattern types. Each rule targets a specific attack tactic; multi-word phrases and verb-noun combinations reduce false positives on benign queries.}
-  \label{tab:v1examples}
-  \centering
-  \begin{tabular}{@{}p{0.23\linewidth}p{0.27\linewidth}>\raggedright p{0.43\linewidth}@{}}
-    \toprule
-    \textbf{Rule type} & \textbf{Pattern (case-insensitive)} & \textbf{What it catches / Why it's narrow} \tabularnewline
-    \midrule
-    Simple keyword phrase & \texttt{ignore all previous} & Catches direct instruction overrides (``Ignore all previous instructions and...''). Multi-word phrase avoids false pos\-i\-tives on ``ignore'' alone (e.g., ``Please don't ignore my question''). \tabularnewline
-    \midrule
-    Structural/role pattern & \texttt{you are now} & Detects role-confusion attacks (``You are now a different assistant who...''). Requires pronoun + state change verb to avoid matching benign statements like ``You are correct'' or ``Now is the time''. \tabularnewline
-    \midrule
-    Verb + sensitive noun & \begin{tabular}[t]{@{}l@{}}\texttt{system override} \\ \texttt{admin override}\end{tabular} & Catches privilege-escalation attempts. Combines action verb (``override'') with authority marker (``system'', ``admin'') instead of matching ``system'' alone (which would flag ``system architecture'' queries). \tabularnewline
-    \bottomrule
-  \end{tabular}
-\end{table}
+\emph{Key finding:} Pattern matching (v1) achieved 80\% TPR (160/200); semantic similarity (v3) achieved 57\% TPR (114/200), both with 0\% FAR on clean benign queries. The signature detector checks for known malicious prompt patterns in our attack corpus.
 
 \subsection*{P3: How Do We Combine Detectors?}
 \emph{Practitioner question:} Can we combine v1 and v3 for better coverage?
 
 We tested four fusion strategies: OR-logic (flag if \emph{any} triggers), AND-logic (flag only if \emph{all} agree), majority vote (2+ agree), and logistic regression (trained weights). OR-fusion maximizes coverage; AND-fusion prioritizes precision.
 
-\emph{Key finding:} OR-fusion achieved 87\% TPR with 0\% FAR (on the 200-attack balanced subset and 200 clean benign queries)---better than either alone. As a diagnostic, we trained a logistic regression combiner via nested cross-validation on Phase 1 attacks (training on 4 folds, testing on held-out fold, repeated 5 times) to confirm that the detector feature signals are learnable; it achieved $\approx$99\% TPR on Phase 1 held-out test sets. However, we deployed OR-fusion for three reasons: (1) \textbf{operational simplicity}: OR-fusion requires no training, cross-validation, threshold tuning, or model maintenance; (2) \textbf{auditability}: OR-fusion's decision rule (``flag if v1 OR v3 triggers'') is transparent to security teams for incident investigation, whereas logistic regression coefficients are opaque; (3) \textbf{robustness}: OR-fusion is deterministic and threshold-robust on our datasets, whereas trained models risk overfitting to Phase 1-specific patterns and require validation on novel threats (P6b/P6c) before deployment. Given our goal of simple, deterministic, easily audited defenses, OR-fusion is the appropriate choice for practitioners.
+\emph{Key finding:} OR-fusion achieved 87\% TPR with 0\% FAR on our controlled test set---better than either detector alone. As a diagnostic, we also trained a simple learned combiner and found it could reach $\approx$99\% TPR on our internal test data, confirming that the v1/v3 signals are learnable. We still deployed OR-fusion because it requires no training, is easier to audit, and is robust to threshold choices on our datasets. OR-fusion's decision rule (``flag if v1 OR v3 triggers'') is transparent to security teams for incident investigation, whereas learned combiners are opaque. Given our goal of simple, deterministic, easily audited defenses, OR-fusion is the appropriate choice for practitioners.
 
 \subsection*{P4: Do We Need to Tune Thresholds?}
 \emph{Practitioner question:} Can we avoid tedious parameter tuning?
 
-We varied v3 similarity threshold from 0.1 to 0.7 on the Phase 1 balanced dataset. OR-fusion maintained stable 87\% TPR (174/200) with 0\% FAR across this entire range (200-attack balanced subset + 200 clean benign queries).
+We varied v3 similarity threshold from 0.1 to 0.7 on our test set. OR-fusion maintained stable 87\% TPR (174/200) with 0\% FAR across this entire range.
 
 \emph{Key finding:} Empirical robustness to threshold choice on our datasets means minimal tuning is typically needed; you should still validate on your own data.
 
@@ -234,40 +162,8 @@ We added a Normalizer applying three transformations: (1) NFKC canonicalization;
 
 \emph{Key finding:} Without normalization, v1 false alarms hit 23.1\% on obfuscated benign queries (Phase 6a). With normalization: 11.5\%.
 
-\paragraph{Normalizer implementation details.}
-The Normalizer is implemented in three sequential steps, shown in the pseudocode below. Python practitioners can use \texttt{unicodedata.normalize()} from the standard library for NFKC; Java users have \texttt{java.text.Normalizer}. The homoglyph mapping is a static lookup table of common confusables (Cyrillic, Greek, mathematical symbols) to their ASCII equivalents---we compiled 47 mappings covering Latin-lookalikes in Cyrillic (U+0435 $\rightarrow$ e, U+043E $\rightarrow$ o, U+0430 $\rightarrow$ a) and Greek (U+0391 $\rightarrow$ A, U+0395 $\rightarrow$ E). Zero-width character removal targets five Unicode codepoints: U+200B (zero-width space), U+200C (zero-width non-joiner), U+200D (zero-width joiner), U+FEFF (zero-width no-break space), U+2060 (word joiner).
-
-\begin{verbatim}
-def normalize(text: str) -> str:
-    # Step 1: Unicode NFKC canonicalization
-    # Converts fullwidth chars, ligatures, and 
-    # compatibility forms to canonical equivalents
-    text = unicodedata.normalize('NFKC', text)
-    
-    # Step 2: Strip zero-width characters
-    # Remove invisible separators and joiners
-    zero_width_chars = ['\u200b', '\u200c', '\u200d', 
-                        '\ufeff', '\u2060']
-    for char in zero_width_chars:
-        text = text.replace(char, '')
-    
-    # Step 3: Map homoglyphs to ASCII
-    # Replace lookalike chars from other scripts
-    homoglyph_map = {
-        '\u0430': 'a',  # Cyrillic a (U+0430)
-        '\u0435': 'e',  # Cyrillic e (U+0435)
-        '\u043e': 'o',  # Cyrillic o (U+043E)
-        '\u0440': 'p',  # Cyrillic p (U+0440)
-        '\u0441': 'c',  # Cyrillic c (U+0441)
-        # ... 42 more mappings
-    }
-    for homoglyph, ascii_char in homoglyph_map.items():
-        text = text.replace(homoglyph, ascii_char)
-    
-    return text
-\end{verbatim}
-
-\textbf{Design choices:} We normalize all scripts (not just Latin/Cyrillic) via NFKC to handle fullwidth ASCII (common in East Asian text), mathematical alphanumerics (U+1D400--U+1D7FF), and enclosed alphanumerics. We do \emph{not} normalize digits or punctuation aggressively---NFKC handles fullwidth digits (e.g., U+FF11-FF13 $\rightarrow$ \texttt{123}), but we preserve punctuation like em-dashes and curly quotes to avoid mangling legitimate text. The homoglyph table focuses on \emph{high-frequency confusables} (Cyrillic/Greek letters visually identical to ASCII) rather than exhaustive coverage---expanding the table to rare Unicode scripts (e.g., Cherokee, Deseret) shows diminishing returns in our experiments. This is a minimal working set; practitioners should adapt it to their supported languages and scripts to improve detection in their specific threat model. For production, consider the \texttt{confusable\_homoglyphs} Python library or Unicode Confusables data~\cite{unicode-confusables} for broader coverage.
+\paragraph{Normalizer implementation.}
+The Normalizer applies three sequential steps: (1) Unicode NFKC canonicalization (via \texttt{unicodedata.normalize()} in Python or \texttt{java.text.Normalizer}); (2) zero-width character removal; (3) homoglyph mapping to ASCII equivalents using a static lookup table of common confusables (Cyrillic, Greek, mathematical symbols), informed by Unicode confusables data~\cite{unicode-confusables}. We deliberately do not normalize digits and most punctuation beyond NFKC to avoid mangling legitimate text. See code repository for complete mappings.
 
 \subsection*{P6: What About Novel and Adversarial Attacks?}
 \emph{Practitioner question:} What happens when attackers devise new evasion techniques?
@@ -284,128 +180,39 @@ Novel attacks covered 4 unseen categories: multi-turn dialogue (30\% TPR), conte
 
 We profiled the complete pipeline (Normalizer → parallel v1+v3 → OR-fusion) on the experimental setup hardware (see Section 3), measuring 1,000 queries.
 
-\emph{Key finding:} Sub-millisecond latency enables high-throughput deployment (detailed metrics in Section~5.1 and Table~\ref{tab:overhead}). Typical LLM inference takes 100-1000ms; the firewall adds $<$1\% overhead.
+\emph{Key finding:} Sub-millisecond latency ($\sim$0.6--0.9\,ms per prompt) enables high-throughput deployment. Typical LLM inference takes 100--1000\,ms; the firewall adds $<$1\% overhead.
 
 \subsection*{P8: Does It Scale?}
 \emph{Practitioner question:} What about resource usage and concurrent load?
 
-\emph{Key finding:} Modest resource usage with linear scaling confirms production readiness (detailed metrics in Section~5.1 and Table~\ref{tab:overhead}).
+\emph{Key finding:} Modest resource usage (142\,MB memory, 18\% GPU) with linear scaling confirms production readiness.
 
 \section{What the Firewall Delivers in Practice}
 
-\paragraph{Metric definitions.}
-We report three metrics throughout this section: \textbf{TPR (True Positive Rate)}---fraction of attacks correctly detected by the firewall; \textbf{FAR (False Alarm Rate)}---fraction of benign prompts incorrectly flagged by the firewall; \textbf{ASR (Attack Success Rate)}---fraction of attacks that successfully compromise the unprotected model (baseline vulnerability measurement). For example, ``87\% TPR'' means the firewall catches 87 out of 100 attacks; ``0\% FAR'' means zero false alarms on benign queries; ``65\% ASR'' means 65 out of 100 attacks succeed against the unprotected model.
-
-\textbf{Metrics at a glance.} Production mode: 57\% TPR, 0\% FAR (clean benign). Monitoring mode: 87\% TPR on known attacks, 0\% FAR (clean benign), $\sim$12\% FAR (obfuscated benign), 49\% TPR on novel attacks. Latency: $\sim$0.6--0.9\,ms per prompt on GPU. Refer to this summary and Table~\ref{tab:benign} (FAR under obfuscation) and Table~\ref{tab:overhead} (latency/resource details) as you read the sections below.
-
-\emph{Actionable metric:} If your application tolerates zero false positives on clean benign data, use Production mode; if you need threat intelligence and can review alerts under obfuscation stress, run Monitoring mode in shadow.
+\paragraph{Performance summary.}
+We report TPR (detection rate), FAR (false alarm rate), and ASR (baseline attack success rate). Production mode caught 57\% of known attacks with 0\% false alarms on clean queries; Monitoring mode caught 87\% of known attacks and $\sim$49\% of novel attacks, with $\sim$12\% false alarms under obfuscation stress. Latency: $\sim$0.6--0.9\,ms per prompt on GPU. Use Production for customer-facing APIs; run Monitoring in shadow for threat intelligence. These TPR/FAR values are measured on our curated attack and benign datasets; we expect real-world rates to vary, so teams should validate on their own traffic.
 
 \paragraph{Experimental setup.}
-All experiments used two 7B parameter instruction-tuned models as the \emph{task models} under attack: LLaMA-2-7B-chat~\cite{llama2} and Falcon-7B-instruct~\cite{falcon}. For RAG-borne attacks, we constructed a simple RAG pipeline with a FAISS~\cite{faiss} vector index over 50 synthetic documents (technical QA pairs), retrieving top-3 documents via cosine similarity and concatenating them into the prompt context without spotlighting or special delimiters---this mimics common RAG deployments where retrieved text is directly inserted before the user query. For schema-smuggling attacks (tool-calling), we used a JSON schema with three fields (\texttt{task}, \texttt{query}, \texttt{context}); attacks embedded malicious instructions in the \texttt{context} field while maintaining valid JSON structure. The firewall's semantic detector (v3) uses \texttt{sentence-transformers/all-MiniLM-L6-v2}~\cite{sentence-transformers} with a library of 150 attack exemplar embeddings, comparing input embeddings via cosine similarity at threshold $\theta = 0.75$. The signature detector (v1) applies 47 regex patterns for known injection markers. All performance measurements (latency, throughput, resource usage) were conducted on an NVIDIA GeForce RTX 4070 Laptop GPU with Intel Core Ultra 9 185H CPU, 32\,GB RAM, running Python 3.9 with PyTorch 2.0, Transformers 4.30, and FAISS 1.7. Code and datasets are available at \url{https://github.com/carlosdenner-videns/prompt-injection-cacm}. \textbf{Scope:} All evaluated prompts are single-turn; we do not track conversational state, which is why multi-turn attacks remain a known gap (Section~\ref{sec:gaps}).
+We tested two 7B instruction-tuned models (LLaMA-2-7B-chat, Falcon-7B-instruct) in a RAG QA setting with 400 attack prompts (200 RAG-borne + 200 schema smuggling), 200 clean benign queries, 260 obfuscated benign queries, and 65 novel attacks. The firewall's v3 semantic detector uses \texttt{sentence-transformers/\allowbreak all-MiniLM-L6-v2}~\cite{sentence-transformers} with 150 attack exemplars (threshold $\theta = 0.75$); v1 applies 47 regex patterns. Hardware: NVIDIA RTX 4070 GPU, 32\,GB RAM. Code: \url{https://github.com/carlosdenner-videns/prompt-injection-cacm}. \textbf{All prompts are single-turn.}
 
-\subsection{Baseline Vulnerability (P1)}
-\label{sec:baseline}
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\linewidth]{fig1_baseline_vulnerability.pdf}
-  \caption{Baseline vulnerability (Phase 1, 400 attacks: 200 RAG-borne + 200 schema smuggling). LLaMA-2-7B shows 65\% ASR on RAG-borne prompts vs. 5\% ASR for Falcon-7B, demonstrating more instruction-tuned models are more vulnerable. Schema smuggling ASR: 31.6\% (LLaMA-2-7B), 26.3\% (Falcon-7B). Values match Table~\ref{tab:baseline}.}
-  \Description{Bar chart comparing attack success rates between LLaMA-2-7B and Falcon-7B models across RAG-borne and schema smuggling attack vectors.}
-  \label{fig:baseline}
-\end{figure}
+\paragraph{Baseline vulnerability (P1).}
+Instruction-tuned models showed high attack success rates, particularly for RAG-borne attacks (detailed metrics in P1).
 
-\begin{table}[t]
-  \caption{Baseline vulnerability summary showing attack success rate (ASR) percentages for both models and attack vectors. ASR is measured as the percentage of injected prompts where the model's response contained the injected success token (see ``Attack success criteria'' paragraph below).}
-  \label{tab:baseline}
-  \centering
-  \begin{tabular}{@{}lcc@{}}
-    \toprule
-    \textbf{Model} & \textbf{RAG-borne ASR (\%)} & \textbf{Schema ASR (\%)} \\
-    \midrule
-    LLaMA-2-7B & 65.0 & 31.6 \\
-    Falcon-7B & 5.0 & 26.3 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\paragraph{Detector efficacy and fusion (P2--P3).}
+As shown in P2--P3, signature rules caught 80\% of attacks and semantic screening 57\%, with OR-fusion reaching 87\% at zero false alarms---outperforming either detector alone while remaining operationally simple and threshold-robust.
 
-Figure~\ref{fig:baseline} and Table~\ref{tab:baseline} establish the threat baseline. LLaMA-2-7B shows 65\% attack success on RAG-borne attacks vs. 5\% for Falcon-7B; more instruction-tuned models are more vulnerable.
+\paragraph{Obfuscation robustness (P5).}
+Normalization proved critical: Production mode (Normalizer+v3) maintains 0.77\% false alarms under obfuscation stress; Monitoring mode rises to 12.3\% when including v1 signature patterns.
 
-\paragraph{Attack success criteria.}
-We counted an attack as successful if the model's response contained the injected success token (e.g., ``ALPHA-9QX'', ``TOKEN-742A'', ``PWNED-4242'') either as the sole output or embedded within a longer response. Each attack payload included a unique success token, allowing automated detection of compliance without human labeling. A response was marked as ``full compliance'' if the token appeared, indicating the model executed the injected instruction. This metric captures both direct instruction-following (e.g., outputting only the token) and partial compliance (e.g., answering the benign question while also outputting the token), both of which represent successful prompt injection in a real system. The success token approach is conservative: it requires explicit evidence of instruction-following rather than inferring intent from response content. Importantly, if the model behaves strangely or refuses to respond but never emits the token, we count the attack as unsuccessful—this prevents inflating ASR by misinterpreting model confusion as compliance. Attacks that failed to produce the token were marked as unsuccessful, even if the response showed other signs of confusion or deviation.
-
-\subsection{Detector Efficacy and Fusion (P2--P3)}
-The signature detector v1 achieved 80\% TPR (160/200) with 0\% FAR on clean benign queries (200-attack balanced subset from Phase 1 + 200 clean benign queries). The semantic detector v3 achieved 57\% TPR (114/200) with 0\% FAR on the same dataset. The heuristic detector v2 lagged behind. On the 200-attack balanced subset, sixty prompts were caught only by v1, fourteen only by v3, one hundred by both, and twenty six by neither, confirming complementary coverage and yielding 87\% TPR (174/200) with OR-fusion.
-
-\begin{table}[t]
-  \caption{Fusion strategy comparison (Dataset: 200-attack balanced subset from Phase 1 + 200 clean benign queries). OR-fusion triggers if any detector flags the prompt (87\% TPR, 0\% FAR). AND-fusion requires all detectors to agree (50\% TPR, overly conservative). Majority vote with v2 adds minimal value (84\% TPR). OR-fusion provides the best precision-recall balance. Configuration: all rows use Normalizer + specified detectors.}
-  \label{tab:fusion}
-  \centering
-  \begin{tabular}{@{}lcc@{}}
-    \toprule
-    \textbf{Fusion Strategy} & \textbf{TPR (\%)} & \textbf{FAR (\%)} \\
-    \midrule
-    AND(v1,v3) & 50.0 & 0.0 \\
-    \textbf{OR(v1,v3)} & \textbf{87.0} & \textbf{0.0} \\
-    Majority(v1,v2,v3) & 84.0 & 0.0 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-Table~\ref{tab:fusion} reports fusion strategies on the Phase 1 balanced dataset (200 attacks + 200 clean benign queries). OR-logic delivers 87\% TPR (174/200) with 0\% FAR on clean benign queries. AND fusion is too conservative at 50\% TPR, missing attacks caught by only one detector. Majority vote achieves 84\% TPR, approaching OR-fusion but adding complexity. Intuitively, v1 excels on loud attacks with obvious markers, while v3 catches paraphrased attacks. OR fusion keeps both strengths.
-
-\subsection{Threshold Robustness (P4)}
-We varied v3's similarity threshold from 0.1 to 0.7 on the Phase 1 balanced dataset. The firewall held steady at 87\% TPR with 0\% FAR across this entire range. This empirical robustness occurs because attack and benign embedding similarities are well separated, with few prompts near the decision boundary. In practice, teams can avoid elaborate grid searches, though you should still validate thresholds on your own data to ensure similar separation.
-
-\subsection{Learning and Normalization (P5--P6a)}
-As in Phase 3, we confirmed via diagnostic cross-validation that detector signals are learnable (logistic regression achieves $\approx$99\% TPR on Phase 1). However, we deploy OR-fusion in practice because it requires no training, is easy to audit ("block if either fires"), and is deterministic and threshold-robust on our datasets---properties essential for security-critical systems where auditability and simplicity are paramount.
-
-\paragraph{Obfuscation stress test (P6a).}
-Table~\ref{tab:benign} reports false alarm rates under synthetic obfuscation---a stress test designed to measure robustness when attackers apply Unicode tricks (Cyrillic lookalikes, zero-width characters, homoglyphs) to benign queries. All FAR values in this table are measured on 260 obfuscated benign queries from Phase 6a, not on clean benign queries. This is distinct from the zero FAR reported in Phases 2--3 (clean benign data). The Normalizer+v3 configuration (Production mode) maintains 0.77\% FAR under obfuscation, while Normalizer+v1+v3 (Monitoring mode) rises to 12.3\% FAR under obfuscation. For comparison, v1 alone (signature-only) reaches 23.1\% FAR under obfuscation without normalization, dropping to 11.5\% with normalization.
-
-\begin{table}[t]
-  \caption{False alarm rates under synthetic obfuscation stress test only (Phase 6a: 260 clean benign queries with synthetic Unicode obfuscations applied---Cyrillic lookalikes, zero-width characters, homoglyphs). These are NOT overall FAR values; overall FAR on clean benign queries (Phase 2--3, on 200-attack balanced subset) is 0\% for all configurations. Each row shows a different detector configuration tested against obfuscated benign queries. Production configuration (Normalizer+v3) achieves 0.77\% FAR under obfuscation ($<$1\%), suitable for low-false-positive deployment.}
-  \label{tab:benign}
-  \centering
-  \begin{tabular}{@{}lS[table-format=2.2]@{}}
-    \toprule
-    \textbf{Configuration} & \textbf{FAR (\%)} \\
-    \midrule
-    v1 (no norm) & 23.10 \\
-    v3 (no norm) & \textbf{0.77} \\
-    v1+v3 (no norm) & 23.80 \\
-    Normalizer+v1 & 11.50 \\
-    \textbf{Normalizer+v3} & \textbf{0.77} \\
-    Normalizer+v1+v3 & 12.30 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-Normalization is where operational robustness is won or lost. Table~\ref{tab:benign} shows false alarm rates under synthetic obfuscations. Without normalization, v1 misclassifies 23\% of obfuscated benign prompts; with normalization: 11.5\%. The semantic detector v3 stays at 0.77\% with or without normalization, which is why Production mode uses Normalizer plus v3.
-
-\begin{table}[t]
-  \caption{Recommended deployment configurations: Production vs Monitoring (Dataset: 200-attack balanced subset from Phase 1 for TPR; 200 clean benign queries for FAR (clean); 260 obfuscated benign queries for FAR (obfuscated)). Production configuration: Normalizer + v3 (semantic only). Monitoring configuration: Normalizer + v1 (signature) + v3 (semantic). Production mode prioritizes precision (0\% FAR on clean, 0.77\% FAR under obfuscation); Monitoring mode prioritizes recall (87\% TPR on known attacks, 49\% TPR on novel attacks from P6b).}
-  \label{tab:configs_summary}
-  \centering
-  \begin{tabular}{@{}lcccc@{}}
-    \toprule
-    \textbf{Mode} & \textbf{Components} & \textbf{TPR} & \textbf{FAR (clean)} & \textbf{FAR (obfuscated)} \\
-    \midrule
-    Production & Normalizer + v3 & 57\% & 0\% & 0.77\% \\
-    Monitoring & Normalizer + v1 + v3 & 87\% & 0\% & 12.3\% \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\subsection{Generalization and Adversaries (P6b--P6c)}
-Novel and adaptive attacks are the real exam. TPR on 65 novel attacks (P6b, from recent jailbreak repositories) varied by category: 30\% TPR on multi-turn dialogue, 35\% TPR on context confusion, 65\% TPR on paraphrased attacks, and 55\% TPR on direct goal hijacks. Overall: 49\% TPR (on 65 novel attacks), a 38-point generalization gap from the 87\% TPR on known attacks (200 Phase 1 attacks).
-
-We also constructed 30 adversarial prompts (P6c) by iteratively mutating detected attacks. The most effective evasion technique was multi-step decomposition (75\% evasion rate), followed by encoding chains (70\%), semantic obfuscation (65\%), paraphrasing (60\%), and fragmentation (55\%). Input filtering is not a silver bullet. The firewall raises the bar but teams still need monitoring, log review, and periodic updates to track active adversaries.
+\paragraph{Generalization to novel attacks (P6).}
+Monitoring mode detected 49\% of novel attacks from jailbreak repositories, with many misses involving multi-turn dialogue and context-confusion attacks (30--35\% detection rates) that exploit conversational state beyond single prompts. For example, an attack might first request a benign policy summary, then in a follow-up turn reference that context to request data exfiltration---the firewall, evaluating each prompt independently, sees no obvious trigger. Input filtering is not a silver bullet; teams need continuous monitoring, log review, and periodic updates to signatures and exemplars.
 
 \paragraph{Summary.}
-Phases 1--6 establish expected performance as summarized in Section~3: Production mode achieves 57\% TPR with 0\% FAR on clean benign data; Monitoring mode achieves 87\% TPR with graceful obfuscation handling. On our Phase 1 dataset, OR-fusion shows empirical robustness to threshold changes, though you should validate on your own data. Generalization gaps (multi-turn, context-confusion) indicate where complementary defenses are needed.
+Production mode (Normalizer+v3) achieves 57\% detection with 0\% false alarms on clean data and 0.77\% under obfuscation---suitable for customer-facing systems. Monitoring mode (Normalizer+v1+v3) catches 87\% of known attacks and 49\% of novel attacks at the cost of 12.3\% false alarms under obfuscation---suitable for threat intelligence. The firewall significantly reduces attack success but isn't foolproof; complement with other defenses.
 
 \section{How to Deploy the LLM Firewall in Your Stack}
 
-This section answers: \emph{What does this firewall look like as a service in my architecture, and how do I run it?} Deploy it as middleware (in-process or microservice) sitting in front of your LLM API, just as you would deploy a web application firewall or API rate limiter. It intercepts every prompt, runs the Normalizer and detectors in under 1 ms, and either blocks (Production mode) or logs (Monitoring mode) suspicious input before forwarding clean prompts to the LLM. Run both modes in parallel---Production for real-time blocking, Monitoring as shadow deployment for continuous improvement. \emph{Actionable step:} Start by instrumenting your API gateway to capture prompts pre-LLM, then add the firewall as a synchronous filter in your request path.
+Deploy the firewall as middleware (in-process or microservice) in front of your LLM API, intercepting prompts before they reach the model. Run Production mode for real-time blocking and Monitoring mode in shadow for threat intelligence.
 
 \begin{figure}[t]
   \centering
@@ -437,153 +244,77 @@ This section answers: \emph{What does this firewall look like as a service in my
     \node[font=\scriptsize, above=0.1cm of decision] {block/log};
     \node[font=\scriptsize, below=0.1cm of decision] {forward};
   \end{tikzpicture}
-  \caption{LLM firewall pipeline architecture. \textit{How to read this diagram:} Every prompt flows left to right through the Normalizer, then v1 (signature) and v3 (semantic) detectors run in parallel, then a simple OR gate (OR-fusion) decides whether to block or forward to the LLM. Production configuration uses Normalizer + v3 only (57\% TPR, 0\% FAR on clean queries, 0.77\% FAR under obfuscation). Monitoring configuration adds v1 for higher recall (87\% TPR on Phase 1 attacks, 49\% TPR on novel attacks from P6b, 0\% FAR on clean queries, 12.3\% FAR under obfuscation).}
+  \caption{LLM firewall pipeline architecture. Prompts flow through Normalizer, then parallel v1 (signature) and v3 (semantic) detectors, then OR-fusion decides whether to block or forward. Production uses Normalizer+v3 for low false alarms; Monitoring adds v1 for higher recall.}
   \Description{System architecture diagram showing the input-side detection pipeline: user input flows through a Normalizer, then splits to parallel signature and semantic detectors, which feed into OR-fusion logic, followed by a decision point for blocking or forwarding to the LLM.}
   \label{fig:arch}
 \end{figure}
 
-Figure~\ref{fig:arch} depicts the integrated pipeline. The system introduces under 1 millisecond overhead with GPU acceleration (see experimental setup in Section 3), negligible for real-time applications and suitable for high-throughput environments. Below we detail performance profiling (P7--P8) that validates you can inline this in latency-sensitive paths, and provide concrete deployment guidance.
+Figure~\ref{fig:arch} depicts the integrated pipeline. Profiling on a typical GPU (NVIDIA RTX 4070) showed the firewall adds $\sim$0.6--0.9\,ms per prompt and uses 142\,MB memory with 18\% GPU utilization---negligible overhead relative to LLM inference (100--1000\,ms). Throughput: $\sim$1,200 queries/second.
 
-\subsection{Performance and Resource Profile (P7--P8)}
-\label{sec:overhead}
-\emph{Why these phases matter:} P7 shows this firewall adds under 1 ms per prompt on typical hardware, so you can inline it in latency-sensitive API paths without becoming a bottleneck. P8 confirms it scales linearly with concurrent load and uses modest resources (142\,MB memory, 18\% GPU), so you can deploy it on standard servers or containerized environments.
+\paragraph{Deployment modes.}
+Use Production mode (Normalizer+v3) for real-time blocking where false positives must be near-zero. Run Monitoring mode (Normalizer+v1+v3) in shadow to flag a wider range of suspicious inputs for later review---periodically analyze logs to identify emerging patterns, false positives, and update signatures/exemplars.
 
-\textbf{Latency and throughput (P7):} We measured end-to-end latency of the complete pipeline on a typical laptop GPU (NVIDIA RTX 4070). Over 1,000 queries (median 47 tokens): Normalizer 0.11\,ms median (0.08--0.18\,ms 90th percentile), v1 Signature 0.23\,ms (0.15--0.35\,ms), v3 Semantic 0.52\,ms (0.42--0.68\,ms, includes embedding computation), OR-fusion $<\,$0.01\,ms, total 0.86\,ms (0.65--1.21\,ms). Parallel execution of v1 and v3 yields practical median $\sim$0.63\,ms.
+\paragraph{Deployment flow.}
+Intercept prompts at your API gateway before they reach the LLM. Normalize text (Unicode canonicalization, zero-width stripping, homoglyph mapping), run detectors (v1 signature patterns + v3 semantic similarity), apply OR-fusion, then block (Production) or log (Monitoring) suspicious prompts, keeping false alarms $<$1\% to avoid frustrating users.\footnote{For large exemplar sets ($>$1,000 attacks), use approximate nearest-neighbor libraries like FAISS~\cite{faiss}. Cache embeddings for repeated queries.}
 
-\textbf{Resource usage and scaling (P8):} We profiled GPU and memory usage to confirm you can run this on standard hardware. Peak GPU 18\% (semantic embedding step), constant memory 142\,MB (v1 rules, v3 model, fusion weights). Batch processing 100 concurrent queries showed linear scaling, no leaks over 10,000 requests. Throughput $\sim$1,200 queries/second confirms real-time viability.
-
-\begin{table}[t]
-  \caption{Phase 7--8 quantitative overhead (Configuration: Normalizer + v1 + v3 in Monitoring mode, measured on experimental setup hardware---see Section 3 for details). Latencies in milliseconds: median and 90th percentile provided for each component. Resource metrics: peak GPU utilization (\%), constant memory footprint (MB), and throughput (queries/second). Dataset: 1,000 queries with median 47 tokens.}
-  \label{tab:overhead}
-  \centering
-  \begin{tabular}{@{}lcc@{}}
-    \toprule
-    \textbf{Metric} & \textbf{Median} & \textbf{90th percentile} \\
-    \midrule
-    Normalizer latency & 0.11\,ms & 0.18\,ms \\
-    v1 Signature latency & 0.23\,ms & 0.35\,ms \\
-    v3 Semantic latency & 0.52\,ms & 0.68\,ms \\
-    \textbf{Total pipeline (serial)} & \textbf{0.86\,ms} & \textbf{1.21\,ms} \\
-    Total pipeline (parallel v1/v3) & 0.63\,ms & 0.86\,ms \\
-    \midrule
-    Peak GPU utilization & \multicolumn{2}{c}{18\%} \\
-    Memory footprint & \multicolumn{2}{c}{142\,MB} \\
-    Max throughput & \multicolumn{2}{c}{1,200 queries/s} \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-Table~\ref{tab:overhead} summarizes performance: v3 dominates latency (0.52\,ms), parallel v1/v3 execution yields 0.63\,ms total. Lightweight footprint (142\,MB memory, 18\% GPU) and high throughput (1,200 queries/s) confirm production readiness.
-
-Two deployment modes embody different philosophies. \textbf{Production} prioritizes precision: uses v3 semantic only to minimize false alarms ($<$1\% FAR), accepting some misses. \textbf{Monitoring} prioritizes recall: combines v1+v3 to catch more attacks (49\% of novel) at higher false alarm cost (12\%). Use Production for real-time blocking, Monitoring for logging and improvement. See Table~\ref{tab:configs_summary} for quantified metrics.
-
-\paragraph{Using Monitoring mode.}
-Deploy both modes in tandem: Production actively blocks, Monitoring runs as shadow deployment logging prompts flagged by v1+v3 but not Production. Review logs periodically to identify emerging patterns, false positives, and gaps. This enables continuous improvement: expand signatures, add semantic exemplars, fine-tune the LLM. Low overhead ($<$1\,ms) makes parallel deployment feasible.
-
-Monitoring mode's v1+v3 combination provides complementary coverage: v1 catches pattern-based attacks v3 misses, improving recall while maintaining acceptable shadow FAR. This dual-detector approach also provides robustness under obfuscation and helps catch novel attacks. See the "Metrics at a glance" summary for specific TPR/FAR numbers by mode and dataset.
-
-\paragraph{Deployment guidance.}
-Implement the pipeline as middleware (in-process or microservice) in front of the LLM API. Sub-millisecond latency won't noticeably affect response times. The deployment flow intercepts each user prompt before it reaches the LLM or tools (for example, at your API gateway or service mesh), then normalizes it by applying Unicode canonicalization (NFKC), stripping zero-width characters, and mapping homoglyphs to ASCII equivalents using standard libraries---this collapses many trivial obfuscations into canonical form. Next, run signature detection (v1) to check for known injection markers and patterns, and compute semantic detection (v3) by embedding the prompt and comparing it to a library of attack exemplars using cosine similarity. Apply OR-fusion: if either detector flags the prompt, treat it as suspicious. Finally, act on the decision: in Production mode, block suspicious prompts or return a safe error, prioritizing low false alarms; in Monitoring mode, log suspicious prompts (including those not blocked in Production) for later review and detector updates. Production blocks to minimize risk; Monitoring logs for analysis. Low FAR ($<$1\%) is critical---blocking legitimate queries frustrates users.
-
-\paragraph{Key design principles.}
-For practitioners building LLM firewalls, we recommend five principles. First, intercept inputs before they reach the LLM or tools---this is your only reliable control point. Second, normalize text first to eliminate trivial obfuscations (Unicode, homoglyphs, zero-width) before detection. Third, combine complementary detectors: pattern matching catches known attacks fast while semantic screening handles paraphrasing. Fourth, use OR-logic fusion for complementary coverage; empirically, this shows robust performance on our datasets with minimal tuning, though you should validate on your own data. Fifth, keep it lightweight with sub-millisecond latency to enable real-time deployment without becoming a bottleneck.
-
-\paragraph{Best practices checklist.}
-For practitioners deploying prompt injection defenses, we recommend:
+\paragraph{Two-week rollout plan.}
+\textbf{Week 1 (Production mode):}
 \begin{itemize}
-  \item \textbf{Defense in depth:} Intercept inputs on both client and server sides when possible. Client-side checks provide early feedback; server-side enforcement is authoritative.
-  \item \textbf{Normalize early:} Apply Unicode canonicalization (NFKC), strip zero-width characters, and map homoglyphs before any detection logic to prevent trivial obfuscation evasion.
-  \item \textbf{Layer multiple detectors:} Combine lightweight pattern matching (fast, catches known attacks) with semantic similarity screening (robust to paraphrasing). OR-fusion provides complementary coverage with minimal tuning on typical datasets, though you should validate thresholds on your own data.
-  \item \textbf{Tune for your context:} Use low-FAR Production mode (Normalizer+v3) for customer-facing applications to minimize user frustration. Use higher-recall Monitoring mode (Normalizer+v1+v3) offline or in shadow deployment to discover new attack patterns.
-  \item \textbf{Treat as ongoing process:} Continuously monitor flagged prompts, analyze false positives and false negatives, and update signature rules and semantic exemplars as new threats emerge---analogous to updating antivirus definitions or firewall rules.
-  \item \textbf{Performance optimization:} For large exemplar sets ($>$1,000 attacks), use approximate nearest-neighbor search libraries like FAISS or Annoy instead of brute-force cosine similarity. Cache prompt embeddings for repeated queries.
+  \item \textbf{Day 1--2:} Intercept prompts at API gateway. Log all prompts with ID and timestamp; do not block yet (no user-visible behavior change).
+  \item \textbf{Day 3--4:} Integrate Normalizer and v3 detector on one low-risk service. Log decisions in shadow mode (``would\_block'' or ``pass'') without blocking (no user-visible behavior change yet).
+  \item \textbf{Day 5:} Review 50--100 logged cases. Check false alarm rate on benign traffic. If FAR $>$ 1\%, raise v3 threshold or add benign exemplars.
 \end{itemize}
 
-\paragraph{How to roll this out in two weeks.}
-This checklist provides a concrete Monday-morning plan for deploying the firewall with minimal risk. Start with one low-traffic service to validate the workflow before scaling to production systems.
-
-\textbf{Week 1: Production mode (Normalizer + v3)}
+\textbf{Week 2 (Monitoring mode):}
 \begin{itemize}
-  \item \textbf{Day 1--2:} Intercept prompts at your API gateway or middleware layer. Log every incoming prompt with a unique ID, timestamp, and service identifier (e.g., ``user-chatbot'', ``doc-qa''). Do not block anything yet---just capture traffic.
-  \item \textbf{Day 3--4:} Integrate the Normalizer (Unicode NFKC + zero-width stripping + homoglyph mapping) and v3 semantic detector into the request path for one low-risk service (e.g., internal QA bot, not customer-facing). Run in shadow mode: compute firewall decisions but log them without blocking. Include the normalized prompt, v3 similarity score, and decision (``would\_block'' or ``pass'') in logs.
-  \item \textbf{Day 5:} Sample 50--100 prompts from your logs. Review the ``would\_block'' cases manually: Are they actual attacks or false positives? Check FAR on benign traffic. If FAR $>$ 1\%, consider raising the v3 threshold slightly (default 0.75) or collecting domain-specific benign exemplars to tune v3.
+  \item \textbf{Day 1--2:} Add v1 signature detector in Monitoring mode. Log v1/v3 decisions separately; do not block on v1 yet.
+  \item \textbf{Day 3--4:} Review 50 prompts where v1 triggered but v3 didn't. Tighten overly broad signatures (e.g., require multi-word phrases).
+  \item \textbf{Day 5:} Enable Production blocking (v3 only) if Week 1 FAR acceptable. Continue Monitoring in shadow. Set review cadence: weekly first month, then monthly.
 \end{itemize}
 
-\textbf{Week 2: Monitoring mode (add v1 signatures)}
-\begin{itemize}
-  \item \textbf{Day 1--2:} Add the v1 signature detector (47 regex patterns) in Monitoring mode only. Run v1 in parallel with v3, but log both decisions separately: ``v1\_flag'', ``v3\_flag'', ``or\_fusion\_flag''. Do not block on v1 yet. This gives you visibility into complementary coverage: prompts v1 catches but v3 misses, and vice versa.
-  \item \textbf{Day 3--4:} Sample another 50 shadow-flagged prompts where v1 triggered but v3 did not. Review these for false positives. Common culprits: overly broad signatures like bare ``system'' or ``urgent'' that match benign queries. Tighten signatures by requiring multi-word phrases (e.g., ``system override'' instead of ``system'') or adding context constraints.
-  \item \textbf{Day 5:} Enable blocking in Production mode (v3 only) for your pilot service if Week 1 showed acceptable FAR. Continue running Monitoring mode (v1 + v3) in shadow for threat intelligence. Set a review cadence: weekly for the first month (adjust signatures and exemplars based on false positives/negatives), then monthly thereafter. Assign an owner: someone on your security or platform team who can update rules and track new attack patterns.
-\end{itemize}
+\textbf{Post-rollout:} Expand Production to additional services incrementally. Update v1 signatures and v3 exemplars quarterly or when new jailbreak techniques emerge.
 
-\textbf{Post-rollout:} After two weeks, you have Production mode live on one service with quantified FAR, and Monitoring mode collecting threat intelligence. Expand Production to additional services incrementally. Use Monitoring logs to update your v1 signatures and v3 exemplars quarterly or when new jailbreak techniques emerge (subscribe to repositories like L1B3RT4S~\cite{jailbreak-repo} or JailbreakBench~\cite{jailbreakbench} for updates).
+\paragraph{Practical maintenance: keeping signatures and exemplars current.}
+The initial set of 47 signature rules and 150 exemplars was seeded from public jailbreak repositories and internal red-team prompts, then pruned against benign logs to eliminate false positives. Maintenance is lightweight: every quarter, review Monitoring logs to identify 10--20 new evasion patterns that slipped through. For high-confidence patterns (e.g., repeated keyword combinations), write narrow signature rules; for semantic variations (e.g., paraphrased instructions), add new exemplars to the v3 set. Re-check on a sample of benign traffic to avoid regressions. This cycle mirrors antivirus signature updates and bounds the maintenance burden to a few hours per quarter---manageable for a single engineer.
 
 \section{Lessons for Teams Running LLMs Today}
 
-This section answers common questions engineering teams ask: \emph{Why can't I just rely on model-level safety? What are the detector trade-offs? Where does this approach break down?} The lessons here come from evaluation results and observed gaps. \emph{Core lesson:} Input validation is a decades-old security practice (SQL injection defenses, XSS filters, spam detection)---this firewall extends that pattern to LLMs with model-agnostic, fast checks you control.
+Input validation is a decades-old security practice (SQL injection defenses, XSS filters)---this firewall extends that pattern to LLMs with model-agnostic, fast checks you control.
 
 \paragraph{Why input-side filtering when models have built-in safety?}
-Modern LLMs have RLHF training and content filters, but they're far from foolproof. Jailbreak proliferation and our baseline measurements (65\% attack success on LLaMA-2, Figure~\ref{fig:baseline}) demonstrate vulnerability. Input-side filtering adds a layer you control and update independently of model providers---like deploying email spam filters when the service already filters. Critically, input filtering protects against RAG-borne attacks (malicious instructions in retrieved documents), which model-level defenses can't address since models see injected content as context. The firewall complements, not replaces, model-level safety. \emph{Actionable:} If you use RAG or tool-calling, input validation is non-negotiable---model safety alone is insufficient.
+Model-level guardrails (RLHF, content filters) can be bypassed. As seen in Section~4, even aligned models like LLaMA-2 comply with 65\% of attacks without input filtering. Input-side filtering adds a layer you control independently of model providers. Critically, it protects against RAG-borne attacks (malicious instructions in retrieved documents), which model-level defenses can't address since models see injected content as context. \emph{Takeaway:} If you use RAG or tool-calling, input validation is non-negotiable.
 
-\paragraph{Detector strengths and brittleness.}
-Signatures (v1) achieve high TPR on known attacks but are brittle---evaded by paraphrasing or advanced obfuscation. Semantic screening (v3) provides robustness to rephrasing, catching attacks v1 misses. OR-fusion delivers 87\% TPR with 0\% FAR on clean benign queries, at the cost of $\approx$12\% FAR under obfuscation stress, and requires minimal tuning on our datasets.
+\paragraph{Which detectors and why combine them?}
+Signature rules are high-precision but narrow (catch known patterns); semantic screening broadens coverage but can false-alarm on obfuscation. OR-fusion of both yields complementary coverage. Normalization is critical: without it, false alarms jump from 11.5\% to 23\% under obfuscation. Sub-millisecond latency suits high-throughput applications.
 
-Normalization is non-negotiable. Without it, v1 shows 23.1\% false alarms on benign obfuscated inputs; with it, 11.5\% (Table~\ref{tab:benign}). Production mode uses Normalizer+v3, which maintains 0\% FAR on clean benign queries and 0.77\% FAR under obfuscation (Table~\ref{tab:benign}).
+\paragraph{Where does this approach break down?}
+\emph{Key limitations:}
+\begin{itemize}
+  \item \textbf{Novel attacks:} Monitoring mode detects $\sim$49\% of novel attacks; half slip through. Like antivirus signatures, detectors require ongoing updates. Treat signatures and exemplars as living databases.
+  \item \textbf{Multi-turn attacks:} The firewall evaluates prompts independently without tracking conversational state. Attackers can gradually build context across turns to bypass detection (e.g., Turn 1: benign question; Turn 2: hypothetical about ignoring policies; Turn 3: indirect reference triggering malicious action). Combine with conversation-level analysis or training-time defenses~\cite{bair-struq,secalign}.
+  \item \textbf{Multimodal inputs:} We focus on textual attacks. Systems accepting images or audio need additional checks---attackers can embed instructions in non-text modalities.
+  \item \textbf{Multilingual attacks:} We evaluated English prompts; other languages may require language-specific normalization and exemplars.
+  \item \textbf{Model generalization:} We tested 7B models; larger models or frontier APIs (GPT-4, Claude) may show different vulnerability profiles. The defense is model-agnostic but detection rates depend on attack sophistication.
+  \item \textbf{Output-side attacks:} Our firewall does not inspect model outputs; if a tool blindly executes model responses, additional output validation is required.
+\end{itemize}
 
-Phase 7--8 measurements confirm production readiness: 0.63--0.86\,ms latency, 142\,MB memory, 18\% GPU (Section~\ref{sec:overhead}). Sub-millisecond overhead suits high-throughput applications.
-
-Principal gaps are multi-turn attacks (unfold across exchanges) and context-confusion (exploit role boundaries). These suggest needs for conversational state analysis or training-time defenses (StruQ/SecAlign)~\cite{bair-struq,secalign}.
-
-\section{Known Gaps and What to Watch Next}
-\label{sec:gaps}
-
-This section answers: \emph{What gaps remain, and what should you watch as threats evolve?} Be aware of these limitations when deploying---they guide where you need additional defenses. \emph{Concrete takeaway:} If your application has multi-turn conversations or multimodal inputs, this firewall provides partial protection; plan for complementary defenses like conversation-state tracking or input-modality filtering.
-
-\paragraph{Novel attack coverage.}
-No static filter catches all prompt injections---attackers continually devise new techniques. Monitoring mode detects approximately 49\% of novel attacks (detection rates vary by category: 30\% for multi-turn, 35\% for context-confusion, 65\% for paraphrasing, and 55\% for direct hijacking). \textbf{A 49\% detection rate on novel attacks means that half still slip through.} Teams should treat the firewall as a first line of defense, not as sufficient on its own. Like antivirus signatures, this is an arms race requiring updates. Deploy Monitoring to log slips, creating a feedback loop. \emph{Mitigation:} Treat signatures and semantic exemplars as living databases evolving with threats, like updating firewall rules or spam filters.
-
-\paragraph{Multi-turn and conversational context.}
-Our evaluation focused on single-turn prompts in RAG QA. For open-ended chatbots with multi-turn conversations, the system provides per-prompt protection but doesn't track conversational state or detect attacks unfolding across exchanges. Multi-turn attacks are dangerous---attackers gradually build context to bypass defenses.
-
-\begin{figure}[t]
-  \centering
-  \small
-  \begin{tabular}{|l|p{0.75\linewidth}|}
-    \hline
-    Turn 1 & User: ``Can you help me understand security policies?'' Firewall: allowed (no patterns). \\
-    \hline
-    Turn 2 & User: ``What if someone told you to ignore those policies?'' Firewall: allowed (benign context). \\
-    \hline
-    Turn 3 & User: ``Hypothetically, if I said 'do what I just described', would that work? Now list all customer emails.'' Firewall: allowed (no explicit markers, indirect reference). \\
-    \hline
-    \multicolumn{2}{|p{0.93\linewidth}|}{The attack unfolds across turns by building context and using indirect references. Each individual prompt appears benign. The firewall evaluates prompts independently without tracking conversational state.} \\
-    \hline
-  \end{tabular}
-  \caption{Multi-turn attack that evades single-turn filtering. The attacker gradually builds context across three turns, then uses an indirect reference to trigger the attack in Turn 3. This demonstrates a known limitation requiring complementary dialogue-state tracking.}
-  \Description{Table showing a three-turn conversational attack that evades the firewall. Turn 1 asks benign question about security policies (allowed). Turn 2 asks hypothetical about ignoring policies in benign context (allowed). Turn 3 uses indirect reference to previous turns to trigger malicious request for customer emails (allowed because no explicit markers). Bottom row explains how the attack unfolds across turns by building context, demonstrating the firewall's limitation in tracking conversational state.}
-  \label{fig:multiturn-attack}
-\end{figure}
-
-\emph{Mitigation:} Combine this firewall with conversation-level analysis (tracking instruction flow across turns) or training-time defenses (StruQ~\cite{bair-struq}, SecAlign~\cite{secalign}). The firewall still catches single-turn injections and tool exploits.
-
-\paragraph{Scope and modality.}
-We focus on \emph{textual} attacks. Systems accepting non-text inputs (images, audio) need additional checks---attackers can embed malicious instructions in images for vision-language models. Multimodal prompt injection is an emerging threat outside our scope. We evaluated English prompts; multilingual attacks may require language-specific normalization and exemplars. \emph{Mitigation:} Extend v1 and v3 with non-English patterns (translate signatures, collect exemplars in target languages). Multimodal defenses need analogous techniques per modality (image analysis, audio transcription + text filtering).
-
-\paragraph{Evaluation setting.}
-We tested two 7B models (LLaMA-2-7B, Falcon-7B) in RAG. Larger models (70B+) and different architectures (mixture-of-experts) may show different vulnerability profiles. \textbf{We did not evaluate on proprietary frontier models (GPT-4, Claude); we expect input-side filtering to transfer, but the exact TPR/FAR numbers will differ.} Our defense is model-agnostic---it filters inputs before they reach any model---but specific detection rates depend on attack sophistication and model behavior. Cross-model validation remains an open research question.
-
-\paragraph{Future directions.}
-Promising paths include dialogue-state tracking, incremental learning from Monitoring telemetry, and hybrid approaches combining input filtering with training-time alignment. \textbf{Evaluating on standardized benchmarks such as JailbreakBench~\cite{jailbreakbench} is an open item we have not yet completed}; such evaluation would enable direct comparison with published baselines and validate generalizability. We encourage community collaboration: share signature rules and attack examples to improve coverage. Community-driven signature/exemplar maintenance, like open-source antivirus databases, could reduce individual burden while accelerating collective defense.
+\emph{Mitigation:} Deploy Monitoring mode to log slips and update detectors quarterly. This firewall is a first line of defense; complement with other defenses (training-time alignment, output monitoring).
 
 \section{Conclusion}
-A practical LLM firewall can substantially raise the bar against prompt injection with minimal overhead. This firewall stops 57\% of known attacks in Production mode and 87\% in Monitoring mode with zero false alarms on clean queries, and catches roughly half of novel attacks. With 0.63--0.86\,ms latency, 142\,MB memory, and $\sim$1,200 queries/second throughput, it validates practical deployment.
+An input-layer LLM firewall (normalization + signature + semantic detectors with OR-fusion) catches a large fraction of prompt injection attacks with minimal overhead and no model changes on our datasets; in practice, you should treat these numbers as indicative, not guarantees, and continuously recalibrate as attackers and models evolve. This extends a familiar security pattern---input validation at the boundary---to LLMs, working with any model provider.
 
-Combining normalization, signature rules (47 patterns), and semantic detection (150 exemplars) via OR-fusion provides robust defense with minimal tuning required on typical datasets. Dual-mode architecture supports immediate protection and continuous improvement. On unseen, out-of-distribution jailbreaks, Monitoring mode detects about half; the rest still require defense-in-depth and ongoing rule/exemplar updates as the threat landscape evolves.
+\paragraph{What to watch next.}
+\begin{itemize}
+  \item \textbf{Multi-turn attacks:} Require stateful tracking beyond single prompts (an open research area).
+  \item \textbf{Adaptive attackers:} Expect prompt injection techniques to evolve; continuous monitoring and quarterly updates of rules/exemplars are needed (akin to antivirus updates).
+  \item \textbf{Multimodal threats:} Systems accepting images or audio need additional checks; attackers can embed instructions in non-text modalities.
+  \item \textbf{Output monitoring:} This firewall doesn't analyze model responses; malicious use of LLM outputs is outside its scope.
+\end{itemize}
 
-This extends a familiar security pattern---input validation at the boundary---to LLMs. Like web application firewalls and spam filters, it works regardless of your model provider and can be deployed, monitored, and updated independently. We encourage community collaboration to share signature rules and attack examples, improving coverage while research develops complementary training-time and architectural defenses.
+\emph{Bottom line:} Prompt injection is a serious, here-and-now threat, but this firewall provides an immediate and adoptable first line of defense. By combining multiple detection techniques and continuously adapting to new attacks, teams can significantly reduce their exposure to LLM hijacks in production.
 
 \section*{Data Availability}
-\textbf{Datasets (see Table~\ref{tab:datasets} for complete breakdown):}
+\textbf{Datasets:}
 \begin{itemize}
   \item \textbf{Phase 1 attacks (400 total):} 200 RAG-borne (attackers poison retrieved documents) + 200 schema smuggling (attackers exploit JSON interfaces). Evasion techniques: plain text, delimiters, role confusion, multilingual, homoglyphs, Unicode obfuscation, base64, zero-width.
   \item \textbf{Benign queries (clean, 200):} Sampled from synthetic QA logs. Used for FAR measurement in Phases 2--3.

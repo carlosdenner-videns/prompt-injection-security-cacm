@@ -3,9 +3,8 @@
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \citation{hiddenlayer-cursor}
-\citation{cve-cursor}
 \citation{rehberger-copilot}
-\citation{guardian-search}
+\citation{cve-cursor,guardian-search}
 \citation{owasp-llm01}
 \citation{willison-trifecta}
 \@writefile{toc}{\contentsline {section}{Abstract}{1}{section*.1}\protected@file@percent }
@@ -13,91 +12,51 @@
 \citation{jailbreak-repo}
 \citation{jailbreakbench,liu-usenix24}
 \citation{secalign}
-\citation{microsoft-indirect}
-\citation{bair-struq}
+\citation{microsoft-indirect,bair-struq}
 \citation{owasp-llm01}
 \@writefile{toc}{\contentsline {paragraph}{Who should read this}{2}{section*.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{What you will learn}{2}{section*.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{What you'll find here.}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Contributions.}{2}{section*.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {2}Why Prompt Injection Matters Operationally}{2}{section.2}\protected@file@percent }
 \newlabel{sec:related}{{2}{2}{Why Prompt Injection Matters Operationally}{section.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Practitioner questions.}{2}{section*.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{What defenses exist and which ones you control.}{2}{section*.6}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Patent-informed defense motifs and how our pipeline instantiates them.}}{3}{table.caption.8}\protected@file@percent }
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{tab:patents}{{1}{3}{Patent-informed defense motifs and how our pipeline instantiates them}{table.caption.8}{}}
-\@writefile{toc}{\contentsline {paragraph}{Why practitioners should care now.}{3}{section*.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Patent Landscape (Industry Signals)}{3}{subsection.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}The LLM Firewall Architecture and Design Rationale}{3}{section.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Recommended architecture.}{3}{section*.9}\protected@file@percent }
-\citation{jailbreak-repo,jailbreakbench}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces \textbf  {Experimental datasets at a glance.} All evaluation metrics (TPR, FAR, detection rates) are tied to specific datasets listed below. Phase 1 attacks are split into two mechanisms; benign queries are used for FAR measurement in both clean and obfuscated forms; novel and adversarial attacks test generalization.}}{4}{table.caption.11}\protected@file@percent }
-\newlabel{tab:datasets}{{2}{4}{\textbf {Experimental datasets at a glance.} All evaluation metrics (TPR, FAR, detection rates) are tied to specific datasets listed below. Phase 1 attacks are split into two mechanisms; benign queries are used for FAR measurement in both clean and obfuscated forms; novel and adversarial attacks test generalization}{table.caption.11}{}}
-\@writefile{toc}{\contentsline {paragraph}{Design rationale.}{4}{section*.10}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Example of a RAG-borne attack with Unicode obfuscation. The firewall's Normalizer canonicalizes the Cyrillic character, enabling both signature (v1) and semantic (v3) detectors to flag the injection. OR-fusion blocks the prompt.}}{5}{figure.caption.14}\protected@file@percent }
-\newlabel{fig:attack-example}{{1}{5}{Example of a RAG-borne attack with Unicode obfuscation. The firewall's Normalizer canonicalizes the Cyrillic character, enabling both signature (v1) and semantic (v3) detectors to flag the injection. OR-fusion blocks the prompt}{figure.caption.14}{}}
-\@writefile{toc}{\contentsline {paragraph}{v1 signature rule examples.}{5}{section*.15}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Example v1 signature rules showing different pattern types. Each rule targets a specific attack tactic; multi-word phrases and verb-noun combinations reduce false positives on benign queries.}}{6}{table.caption.16}\protected@file@percent }
-\newlabel{tab:v1examples}{{3}{6}{Example v1 signature rules showing different pattern types. Each rule targets a specific attack tactic; multi-word phrases and verb-noun combinations reduce false positives on benign queries}{table.caption.16}{}}
-\@writefile{toc}{\contentsline {paragraph}{Normalizer implementation details.}{6}{section*.20}\protected@file@percent }
-\citation{unicode-confusables}
+\@writefile{toc}{\contentsline {paragraph}{Key questions.}{2}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{What defenses you control.}{2}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why practitioners should care now.}{2}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Positioning versus existing guardrails.}{2}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Industry signals.}{2}{section*.9}\protected@file@percent }
 \citation{llama2}
 \citation{falcon}
-\citation{faiss}
+\citation{jailbreak-repo,jailbreakbench}
+\@writefile{toc}{\contentsline {section}{\numberline {3}The LLM Firewall Architecture and Design Rationale}{3}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Recommended architecture.}{3}{section*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Design rationale.}{3}{section*.11}\protected@file@percent }
+\citation{unicode-confusables}
+\@writefile{toc}{\contentsline {paragraph}{Normalizer implementation.}{4}{section*.17}\protected@file@percent }
 \citation{sentence-transformers}
-\@writefile{toc}{\contentsline {section}{\numberline {4}What the Firewall Delivers in Practice}{8}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Metric definitions.}{8}{section*.24}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Experimental setup.}{8}{section*.25}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Baseline vulnerability (Phase 1, 400 attacks: 200 RAG-borne + 200 schema smuggling). LLaMA-2-7B shows 65\% ASR on RAG-borne prompts vs. 5\% ASR for Falcon-7B, demonstrating more instruction-tuned models are more vulnerable. Schema smuggling ASR: 31.6\% (LLaMA-2-7B), 26.3\% (Falcon-7B). Values match Table\nonbreakingspace \ref {tab:baseline}.}}{9}{figure.caption.26}\protected@file@percent }
-\newlabel{fig:baseline}{{2}{9}{Baseline vulnerability (Phase 1, 400 attacks: 200 RAG-borne + 200 schema smuggling). LLaMA-2-7B shows 65\% ASR on RAG-borne prompts vs. 5\% ASR for Falcon-7B, demonstrating more instruction-tuned models are more vulnerable. Schema smuggling ASR: 31.6\% (LLaMA-2-7B), 26.3\% (Falcon-7B). Values match Table~\ref {tab:baseline}}{figure.caption.26}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Baseline Vulnerability (P1)}{9}{subsection.4.1}\protected@file@percent }
-\newlabel{sec:baseline}{{4.1}{9}{Baseline Vulnerability (P1)}{subsection.4.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Attack success criteria.}{9}{section*.28}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Baseline vulnerability summary showing attack success rate (ASR) percentages for both models and attack vectors. ASR is measured as the percentage of injected prompts where the model's response contained the injected success token (see ``Attack success criteria'' paragraph below).}}{10}{table.caption.27}\protected@file@percent }
-\newlabel{tab:baseline}{{4}{10}{Baseline vulnerability summary showing attack success rate (ASR) percentages for both models and attack vectors. ASR is measured as the percentage of injected prompts where the model's response contained the injected success token (see ``Attack success criteria'' paragraph below)}{table.caption.27}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Fusion strategy comparison (Dataset: 200-attack balanced subset from Phase 1 + 200 clean benign queries). OR-fusion triggers if any detector flags the prompt (87\% TPR, 0\% FAR). AND-fusion requires all detectors to agree (50\% TPR, overly conservative). Majority vote with v2 adds minimal value (84\% TPR). OR-fusion provides the best precision-recall balance. Configuration: all rows use Normalizer + specified detectors.}}{10}{table.caption.29}\protected@file@percent }
-\newlabel{tab:fusion}{{5}{10}{Fusion strategy comparison (Dataset: 200-attack balanced subset from Phase 1 + 200 clean benign queries). OR-fusion triggers if any detector flags the prompt (87\% TPR, 0\% FAR). AND-fusion requires all detectors to agree (50\% TPR, overly conservative). Majority vote with v2 adds minimal value (84\% TPR). OR-fusion provides the best precision-recall balance. Configuration: all rows use Normalizer + specified detectors}{table.caption.29}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Detector Efficacy and Fusion (P2--P3)}{10}{subsection.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Threshold Robustness (P4)}{10}{subsection.4.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces False alarm rates under synthetic obfuscation stress test only (Phase 6a: 260 clean benign queries with synthetic Unicode obfuscations applied---Cyrillic lookalikes, zero-width characters, homoglyphs). These are NOT overall FAR values; overall FAR on clean benign queries (Phase 2--3, on 200-attack balanced subset) is 0\% for all configurations. Each row shows a different detector configuration tested against obfuscated benign queries. Production configuration (Normalizer+v3) achieves 0.77\% FAR under obfuscation ($<$1\%), suitable for low-false-positive deployment.}}{11}{table.caption.31}\protected@file@percent }
-\newlabel{tab:benign}{{6}{11}{False alarm rates under synthetic obfuscation stress test only (Phase 6a: 260 clean benign queries with synthetic Unicode obfuscations applied---Cyrillic lookalikes, zero-width characters, homoglyphs). These are NOT overall FAR values; overall FAR on clean benign queries (Phase 2--3, on 200-attack balanced subset) is 0\% for all configurations. Each row shows a different detector configuration tested against obfuscated benign queries. Production configuration (Normalizer+v3) achieves 0.77\% FAR under obfuscation ($<$1\%), suitable for low-false-positive deployment}{table.caption.31}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Recommended deployment configurations: Production vs Monitoring (Dataset: 200-attack balanced subset from Phase 1 for TPR; 200 clean benign queries for FAR (clean); 260 obfuscated benign queries for FAR (obfuscated)). Production configuration: Normalizer + v3 (semantic only). Monitoring configuration: Normalizer + v1 (signature) + v3 (semantic). Production mode prioritizes precision (0\% FAR on clean, 0.77\% FAR under obfuscation); Monitoring mode prioritizes recall (87\% TPR on known attacks, 49\% TPR on novel attacks from P6b).}}{11}{table.caption.32}\protected@file@percent }
-\newlabel{tab:configs_summary}{{7}{11}{Recommended deployment configurations: Production vs Monitoring (Dataset: 200-attack balanced subset from Phase 1 for TPR; 200 clean benign queries for FAR (clean); 260 obfuscated benign queries for FAR (obfuscated)). Production configuration: Normalizer + v3 (semantic only). Monitoring configuration: Normalizer + v1 (signature) + v3 (semantic). Production mode prioritizes precision (0\% FAR on clean, 0.77\% FAR under obfuscation); Monitoring mode prioritizes recall (87\% TPR on known attacks, 49\% TPR on novel attacks from P6b)}{table.caption.32}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Learning and Normalization (P5--P6a)}{11}{subsection.4.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Obfuscation stress test (P6a).}{11}{section*.30}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces LLM firewall pipeline architecture. \textit  {How to read this diagram:} Every prompt flows left to right through the Normalizer, then v1 (signature) and v3 (semantic) detectors run in parallel, then a simple OR gate (OR-fusion) decides whether to block or forward to the LLM. Production configuration uses Normalizer + v3 only (57\% TPR, 0\% FAR on clean queries, 0.77\% FAR under obfuscation). Monitoring configuration adds v1 for higher recall (87\% TPR on Phase 1 attacks, 49\% TPR on novel attacks from P6b, 0\% FAR on clean queries, 12.3\% FAR under obfuscation).}}{12}{figure.caption.34}\protected@file@percent }
-\newlabel{fig:arch}{{3}{12}{LLM firewall pipeline architecture. \textit {How to read this diagram:} Every prompt flows left to right through the Normalizer, then v1 (signature) and v3 (semantic) detectors run in parallel, then a simple OR gate (OR-fusion) decides whether to block or forward to the LLM. Production configuration uses Normalizer + v3 only (57\% TPR, 0\% FAR on clean queries, 0.77\% FAR under obfuscation). Monitoring configuration adds v1 for higher recall (87\% TPR on Phase 1 attacks, 49\% TPR on novel attacks from P6b, 0\% FAR on clean queries, 12.3\% FAR under obfuscation)}{figure.caption.34}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Generalization and Adversaries (P6b--P6c)}{12}{subsection.4.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Summary.}{12}{section*.33}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}How to Deploy the LLM Firewall in Your Stack}{12}{section.5}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Phase 7--8 quantitative overhead (Configuration: Normalizer + v1 + v3 in Monitoring mode, measured on experimental setup hardware---see Section 3 for details). Latencies in milliseconds: median and 90th percentile provided for each component. Resource metrics: peak GPU utilization (\%), constant memory footprint (MB), and throughput (queries/second). Dataset: 1,000 queries with median 47 tokens.}}{13}{table.caption.35}\protected@file@percent }
-\newlabel{tab:overhead}{{8}{13}{Phase 7--8 quantitative overhead (Configuration: Normalizer + v1 + v3 in Monitoring mode, measured on experimental setup hardware---see Section 3 for details). Latencies in milliseconds: median and 90th percentile provided for each component. Resource metrics: peak GPU utilization (\%), constant memory footprint (MB), and throughput (queries/second). Dataset: 1,000 queries with median 47 tokens}{table.caption.35}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Performance and Resource Profile (P7--P8)}{13}{subsection.5.1}\protected@file@percent }
-\newlabel{sec:overhead}{{5.1}{13}{Performance and Resource Profile (P7--P8)}{subsection.5.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Using Monitoring mode.}{13}{section*.36}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Deployment guidance.}{14}{section*.37}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Key design principles.}{14}{section*.38}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Best practices checklist.}{14}{section*.39}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{How to roll this out in two weeks.}{14}{section*.40}\protected@file@percent }
-\citation{jailbreak-repo}
-\citation{jailbreakbench}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Lessons for Teams Running LLMs Today}{15}{section.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why input-side filtering when models have built-in safety?}{15}{section*.41}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}What the Firewall Delivers in Practice}{5}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Performance summary.}{5}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Experimental setup.}{5}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Baseline vulnerability (P1).}{5}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Detector efficacy and fusion (P2--P3).}{5}{section*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Obfuscation robustness (P5).}{5}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Generalization to novel attacks (P6).}{5}{section*.26}\protected@file@percent }
+\citation{faiss}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces LLM firewall pipeline architecture. Prompts flow through Normalizer, then parallel v1 (signature) and v3 (semantic) detectors, then OR-fusion decides whether to block or forward. Production uses Normalizer+v3 for low false alarms; Monitoring adds v1 for higher recall.}}{6}{figure.caption.28}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:arch}{{1}{6}{LLM firewall pipeline architecture. Prompts flow through Normalizer, then parallel v1 (signature) and v3 (semantic) detectors, then OR-fusion decides whether to block or forward. Production uses Normalizer+v3 for low false alarms; Monitoring adds v1 for higher recall}{figure.caption.28}{}}
+\@writefile{toc}{\contentsline {paragraph}{Summary.}{6}{section*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}How to Deploy the LLM Firewall in Your Stack}{6}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Deployment modes.}{6}{section*.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Deployment flow.}{6}{section*.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Two-week rollout plan.}{6}{section*.31}\protected@file@percent }
 \citation{bair-struq,secalign}
-\citation{bair-struq}
-\citation{secalign}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Multi-turn attack that evades single-turn filtering. The attacker gradually builds context across three turns, then uses an indirect reference to trigger the attack in Turn 3. This demonstrates a known limitation requiring complementary dialogue-state tracking.}}{16}{figure.caption.45}\protected@file@percent }
-\newlabel{fig:multiturn-attack}{{4}{16}{Multi-turn attack that evades single-turn filtering. The attacker gradually builds context across three turns, then uses an indirect reference to trigger the attack in Turn 3. This demonstrates a known limitation requiring complementary dialogue-state tracking}{figure.caption.45}{}}
-\@writefile{toc}{\contentsline {paragraph}{Detector strengths and brittleness.}{16}{section*.42}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Known Gaps and What to Watch Next}{16}{section.7}\protected@file@percent }
-\newlabel{sec:gaps}{{7}{16}{Known Gaps and What to Watch Next}{section.7}{}}
-\@writefile{toc}{\contentsline {paragraph}{Novel attack coverage.}{16}{section*.43}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Multi-turn and conversational context.}{16}{section*.44}\protected@file@percent }
-\citation{jailbreakbench}
-\@writefile{toc}{\contentsline {paragraph}{Scope and modality.}{17}{section*.46}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Evaluation setting.}{17}{section*.47}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Future directions.}{17}{section*.48}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{17}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Practical maintenance: keeping signatures and exemplars current.}{7}{section*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Lessons for Teams Running LLMs Today}{7}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why input-side filtering when models have built-in safety?}{7}{section*.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Which detectors and why combine them?}{7}{section*.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Where does this approach break down?}{7}{section*.35}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{8}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{What to watch next.}{8}{section*.36}\protected@file@percent }
 \bibstyle{ACM-Reference-Format}
 \bibdata{prompt_injection_cacm}
 \bibcite{falcon}{{1}{2023}{{Almazrouei et~al\mbox  {.}}}{{}}}
@@ -113,11 +72,11 @@
 \bibcite{rehberger-copilot}{{11}{2024}{{Rehberger}}{{}}}
 \bibcite{sentence-transformers}{{12}{2019}{{Reimers and Gurevych}}{{}}}
 \bibcite{cve-cursor}{{13}{2025}{{Tenable Research}}{{}}}
-\@writefile{toc}{\contentsline {section}{Acknowledgments}{18}{section*.51}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{References}{18}{section*.53}\protected@file@percent }
 \bibcite{guardian-search}{{14}{2024}{{The Guardian}}{{}}}
 \bibcite{llama2}{{15}{2023}{{Touvron et~al\mbox  {.}}}{{}}}
 \bibcite{unicode-confusables}{{16}{2024}{{Unicode Consortium}}{{}}}
+\@writefile{toc}{\contentsline {section}{Acknowledgments}{9}{section*.39}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{9}{section*.41}\protected@file@percent }
 \bibcite{willison-trifecta}{{17}{2025}{{Willison}}{{}}}
 \newlabel{tocindent-1}{0pt}
 \newlabel{tocindent0}{0pt}
@@ -126,5 +85,5 @@
 \newlabel{tocindent3}{0pt}
 \newlabel{tocindent4}{0pt}
 \newlabel{tocindent5}{0pt}
-\newlabel{TotPages}{{19}{19}{}{page.19}{}}
-\gdef \@abspage@last{19}
+\newlabel{TotPages}{{10}{10}{}{page.10}{}}
+\gdef \@abspage@last{10}
