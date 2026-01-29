@@ -14,69 +14,85 @@
 \citation{secalign}
 \citation{microsoft-indirect,bair-struq}
 \citation{owasp-llm01}
-\@writefile{toc}{\contentsline {paragraph}{Who should read this}{2}{section*.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{What you will learn}{2}{section*.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Contributions.}{2}{section*.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2}Why Prompt Injection Matters Operationally}{2}{section.2}\protected@file@percent }
-\newlabel{sec:related}{{2}{2}{Why Prompt Injection Matters Operationally}{section.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Key questions.}{2}{section*.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{What defenses you control.}{2}{section*.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why practitioners should care now.}{2}{section*.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Positioning versus existing guardrails.}{2}{section*.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Industry signals.}{2}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Goal and scope.}{2}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Contributions.}{2}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Article roadmap.}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Threat Landscape and Defense Options}{2}{section.2}\protected@file@percent }
+\newlabel{sec:related}{{2}{2}{Threat Landscape and Defense Options}{section.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Defense categories.}{2}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Existing tools and their gaps.}{2}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Industry patent landscape.}{2}{section*.7}\protected@file@percent }
+\citation{greshake2023indirect}
+\citation{liu-usenix24}
+\citation{microsoft-indirect}
+\citation{secalign}
+\@writefile{toc}{\contentsline {paragraph}{Academic context.}{3}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}The LLM Firewall Architecture}{3}{section.3}\protected@file@percent }
+\newlabel{sec:architecture}{{3}{3}{The LLM Firewall Architecture}{section.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Running example.}{3}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Normalizer: Defeating Obfuscation}{3}{subsection.3.1}\protected@file@percent }
+\citation{sentence-transformers}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Representative signature patterns. The full set of 47 patterns is available in the code repository.}}{4}{table.caption.10}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:patterns}{{1}{4}{Representative signature patterns. The full set of 47 patterns is available in the code repository}{table.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Signature Detector: Pattern Matching for Known Attacks}{4}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Semantic Detector: Embedding-Based Similarity}{4}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}OR-Fusion: Combining Detectors}{4}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Two Operational Modes}{4}{subsection.3.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Evaluation datasets. All datasets available at the code repository.}}{5}{table.caption.11}\protected@file@percent }
+\newlabel{tab:datasets}{{2}{5}{Evaluation datasets. All datasets available at the code repository}{table.caption.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Evaluation}{5}{section.4}\protected@file@percent }
+\newlabel{sec:evaluation}{{4}{5}{Evaluation}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Datasets}{5}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Detection Results}{5}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Detection results by mode and dataset. TPR = detection rate; FAR = false alarm rate.}}{6}{table.caption.12}\protected@file@percent }
+\newlabel{tab:results}{{3}{6}{Detection results by mode and dataset. TPR = detection rate; FAR = false alarm rate}{table.caption.12}{}}
+\@writefile{toc}{\contentsline {paragraph}{Baseline vulnerability.}{6}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Detector contributions.}{6}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{What the firewall catches.}{6}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{What the firewall misses.}{6}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Threshold robustness.}{6}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Performance overhead.}{6}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Generalizability caveat.}{6}{section*.19}\protected@file@percent }
+\citation{faiss}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces LLM firewall pipeline architecture. Prompts flow through Normalizer, then parallel Signature and Semantic detectors, then OR-fusion decides whether to block or forward. Production uses Normalizer+Semantic for low false alarms; Monitoring adds Signature for higher recall.}}{7}{figure.caption.20}\protected@file@percent }
+\newlabel{fig:arch}{{1}{7}{LLM firewall pipeline architecture. Prompts flow through Normalizer, then parallel Signature and Semantic detectors, then OR-fusion decides whether to block or forward. Production uses Normalizer+Semantic for low false alarms; Monitoring adds Signature for higher recall}{figure.caption.20}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Deployment Guide}{7}{section.5}\protected@file@percent }
+\newlabel{sec:deployment}{{5}{7}{Deployment Guide}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Integration Architecture}{7}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Phased Rollout Plan}{7}{subsection.5.2}\protected@file@percent }
+\citation{secalign}
+\citation{bair-struq}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Ongoing Maintenance}{8}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{8}{section.6}\protected@file@percent }
+\newlabel{sec:discussion}{{6}{8}{Discussion}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Input Validation as a Security Primitive}{8}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Limitations}{8}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Future Directions}{8}{subsection.6.3}\protected@file@percent }
 \citation{llama2}
 \citation{falcon}
-\citation{jailbreak-repo,jailbreakbench}
-\@writefile{toc}{\contentsline {section}{\numberline {3}The LLM Firewall Architecture and Design Rationale}{3}{section.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Recommended architecture.}{3}{section*.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Design rationale.}{3}{section*.11}\protected@file@percent }
-\citation{unicode-confusables}
-\@writefile{toc}{\contentsline {paragraph}{Normalizer implementation.}{4}{section*.17}\protected@file@percent }
 \citation{sentence-transformers}
-\@writefile{toc}{\contentsline {section}{\numberline {4}What the Firewall Delivers in Practice}{5}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Performance summary.}{5}{section*.21}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Experimental setup.}{5}{section*.22}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Baseline vulnerability (P1).}{5}{section*.23}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Detector efficacy and fusion (P2--P3).}{5}{section*.24}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Obfuscation robustness (P5).}{5}{section*.25}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Generalization to novel attacks (P6).}{5}{section*.26}\protected@file@percent }
-\citation{faiss}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces LLM firewall pipeline architecture. Prompts flow through Normalizer, then parallel v1 (signature) and v3 (semantic) detectors, then OR-fusion decides whether to block or forward. Production uses Normalizer+v3 for low false alarms; Monitoring adds v1 for higher recall.}}{6}{figure.caption.28}\protected@file@percent }
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:arch}{{1}{6}{LLM firewall pipeline architecture. Prompts flow through Normalizer, then parallel v1 (signature) and v3 (semantic) detectors, then OR-fusion decides whether to block or forward. Production uses Normalizer+v3 for low false alarms; Monitoring adds v1 for higher recall}{figure.caption.28}{}}
-\@writefile{toc}{\contentsline {paragraph}{Summary.}{6}{section*.27}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}How to Deploy the LLM Firewall in Your Stack}{6}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Deployment modes.}{6}{section*.29}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Deployment flow.}{6}{section*.30}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Two-week rollout plan.}{6}{section*.31}\protected@file@percent }
-\citation{bair-struq,secalign}
-\@writefile{toc}{\contentsline {paragraph}{Practical maintenance: keeping signatures and exemplars current.}{7}{section*.32}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Lessons for Teams Running LLMs Today}{7}{section.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Why input-side filtering when models have built-in safety?}{7}{section*.33}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Which detectors and why combine them?}{7}{section*.34}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Where does this approach break down?}{7}{section*.35}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{8}{section.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{What to watch next.}{8}{section*.36}\protected@file@percent }
 \bibstyle{ACM-Reference-Format}
 \bibdata{prompt_injection_cacm}
 \bibcite{falcon}{{1}{2023}{{Almazrouei et~al\mbox  {.}}}{{}}}
 \bibcite{bair-struq}{{2}{2025}{{BAIR (Berkeley Artificial Intelligence Research)}}{{}}}
 \bibcite{jailbreakbench}{{3}{2024}{{Chao et~al\mbox  {.}}}{{}}}
 \bibcite{secalign}{{4}{2025}{{Chen et~al\mbox  {.}}}{{}}}
-\bibcite{hiddenlayer-cursor}{{5}{2025}{{HiddenLayer}}{{}}}
-\bibcite{faiss}{{6}{2021}{{Johnson et~al\mbox  {.}}}{{}}}
-\bibcite{jailbreak-repo}{{7}{2024}{{L1B3RT4S Community}}{{}}}
-\bibcite{liu-usenix24}{{8}{2024}{{Liu et~al\mbox  {.}}}{{}}}
-\bibcite{microsoft-indirect}{{9}{2025}{{Microsoft Security Response Center}}{{}}}
-\bibcite{owasp-llm01}{{10}{2025}{{OWASP GenAI Security Project}}{{}}}
-\bibcite{rehberger-copilot}{{11}{2024}{{Rehberger}}{{}}}
-\bibcite{sentence-transformers}{{12}{2019}{{Reimers and Gurevych}}{{}}}
-\bibcite{cve-cursor}{{13}{2025}{{Tenable Research}}{{}}}
-\bibcite{guardian-search}{{14}{2024}{{The Guardian}}{{}}}
-\bibcite{llama2}{{15}{2023}{{Touvron et~al\mbox  {.}}}{{}}}
-\bibcite{unicode-confusables}{{16}{2024}{{Unicode Consortium}}{{}}}
-\@writefile{toc}{\contentsline {section}{Acknowledgments}{9}{section*.39}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{References}{9}{section*.41}\protected@file@percent }
+\bibcite{greshake2023indirect}{{5}{2023}{{Greshake et~al\mbox  {.}}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{9}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{Acknowledgments}{9}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{9}{section*.25}\protected@file@percent }
+\bibcite{hiddenlayer-cursor}{{6}{2025}{{HiddenLayer}}{{}}}
+\bibcite{faiss}{{7}{2021}{{Johnson et~al\mbox  {.}}}{{}}}
+\bibcite{jailbreak-repo}{{8}{2024}{{L1B3RT4S Community}}{{}}}
+\bibcite{liu-usenix24}{{9}{2024}{{Liu et~al\mbox  {.}}}{{}}}
+\bibcite{microsoft-indirect}{{10}{2025}{{Microsoft Security Response Center}}{{}}}
+\bibcite{owasp-llm01}{{11}{2025}{{OWASP GenAI Security Project}}{{}}}
+\bibcite{rehberger-copilot}{{12}{2024}{{Rehberger}}{{}}}
+\bibcite{sentence-transformers}{{13}{2019}{{Reimers and Gurevych}}{{}}}
+\bibcite{cve-cursor}{{14}{2025}{{Tenable Research}}{{}}}
+\bibcite{guardian-search}{{15}{2024}{{The Guardian}}{{}}}
+\bibcite{llama2}{{16}{2023}{{Touvron et~al\mbox  {.}}}{{}}}
 \bibcite{willison-trifecta}{{17}{2025}{{Willison}}{{}}}
 \newlabel{tocindent-1}{0pt}
 \newlabel{tocindent0}{0pt}

@@ -276,22 +276,20 @@ def process_with_monitoring(query: str):
 
 ---
 
-## 🔍 Patent Landscape
+## Patent Landscape
 
-Analyzed 18 industry filings from:
-- OpenAI
-- Microsoft
-- Google
-- Meta
-- NVIDIA
+Analyzed **31 industry patent filings** (2022-2025) from major technology companies including:
+- Cisco, HiddenLayer, Infosys, Microsoft
+- Unum Group, Palo Alto Networks, IBM
+- Various international filings (US, CN, KR, WO)
 
-**Key insights**:
-- Convergence on input-side validation
-- Multi-detector fusion emerging
-- Normalization as foundational step
-- Industry focus on deterministic controls
+**Key themes identified**:
+- **Sanitizing middleware**: Input normalization before LLM inference
+- **Signature-based detection**: Pattern matching against known attack markers
+- **Semantic screening**: Embedding-based similarity to known attacks
+- **Signed prompts**: Cryptographic tagging of trusted instructions
 
-Full analysis: [`MANUSCRIPT_PREPARATION/PATENTS/`](MANUSCRIPT_PREPARATION/PATENTS/)
+Full patent analysis with summaries and citations: [`docs/PATENT_ANALYSIS.md`](docs/PATENT_ANALYSIS.md)
 
 ---
 

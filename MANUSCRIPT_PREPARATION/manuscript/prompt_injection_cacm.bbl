@@ -100,11 +100,26 @@
 \newblock \showarticletitle{SecAlign: Defending Against Prompt Injection with
   Preference Optimization}.
 \newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2410.05451}}
-  \bibinfo{volume}{2410.05451} (\bibinfo{year}{2025}), \bibinfo{pages}{1--15}.
+  (\bibinfo{year}{2025}), \bibinfo{pages}{1--15}.
 \newblock
 \href{https://doi.org/10.48550/arXiv.2410.05451}{doi:\nolinkurl{10.48550/arXiv.2410.05451}}
 \newblock
 \shownote{v3, Last revised Jul. 3, 2025; accessed Nov. 3, 2025}.
+
+
+\bibitem[Greshake et~al\mbox{.}(2023)]%
+        {greshake2023indirect}
+\bibfield{author}{\bibinfo{person}{Kai Greshake}, \bibinfo{person}{Sahar
+  Abdelnabi}, \bibinfo{person}{Shailesh Mishra}, \bibinfo{person}{Christoph
+  Endres}, \bibinfo{person}{Thorsten Holz}, {and} \bibinfo{person}{Mario
+  Fritz}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Not What You've Signed Up For: Compromising
+  Real-World LLM-Integrated Applications with Indirect Prompt Injection}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 16th ACM Workshop on Artificial
+  Intelligence and Security (AISec '23)}}. \bibinfo{publisher}{ACM},
+  \bibinfo{address}{Copenhagen, Denmark}, \bibinfo{pages}{79--90}.
+\newblock
+\href{https://doi.org/10.1145/3605764.3623985}{doi:\nolinkurl{10.1145/3605764.3623985}}
 
 
 \bibitem[{HiddenLayer}(2025)]%
@@ -261,22 +276,6 @@
 \url{https://arxiv.org/abs/2307.09288}
 \showURL{%
 \tempurl}
-
-
-\bibitem[{Unicode Consortium}(2024)]%
-        {unicode-confusables}
-\bibfield{author}{\bibinfo{person}{{Unicode Consortium}}.}
-  \bibinfo{year}{2024}\natexlab{}.
-\newblock \bibinfo{title}{Unicode Security Considerations: Confusable
-  Detection}.
-\newblock \bibinfo{howpublished}{Unicode Technical Report \#36}.
-\newblock
-\urldef\tempurl%
-\url{https://www.unicode.org/reports/tr36/}
-\showURL{%
-\tempurl}
-\newblock
-\shownote{Accessed Nov. 4, 2025}.
 
 
 \bibitem[Willison(2025)]%

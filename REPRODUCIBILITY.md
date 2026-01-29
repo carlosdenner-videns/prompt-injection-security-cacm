@@ -69,24 +69,24 @@ All experimental data is included in the repository under `phase*/data/`. No add
 
 ```
 phase1/data/
-├── partA_kb.jsonl              # 440 documents (400 benign + 40 malicious)
-├── partA_results.json          # Phase 1 Part A results
-├── partB_results.json          # Phase 1 Part B results
+├── partA_kb.jsonl              # Knowledge base documents
+├── partA_results.json          # Phase 1 Part A results (400 samples)
+├── partB_results.json          # Phase 1 Part B results (100 samples)
 └── phase1_output_annotated.json # Annotated with defense labels
 
 phase2_input_detection/data/
-├── train_attacks.json          # Training set (320 samples)
-├── test_attacks.json           # Test set (80 samples)
-└── benign_queries.json         # 260 benign samples
+├── train_attacks.json          # Training set (220 attack samples)
+├── test_attacks.json           # Test set (56 attack samples)
+└── benign_queries.json         # 200 clean benign samples
 
 phase6a/data/
-└── obfuscated_benign.json      # 260 obfuscated benign samples
+└── obfuscated_benign_queries.json  # 260 obfuscated benign samples
 
 phase6b/data/
-└── novel_attacks.json          # 65 novel attack samples
+└── novel_attacks.json          # 120 novel attack samples (6 categories)
 
 phase6c/data/
-└── adversarial_attacks.json    # 30 adversarial samples
+└── adversarial_attacks.json    # 98 adversarial samples (5 categories)
 ```
 
 ---
